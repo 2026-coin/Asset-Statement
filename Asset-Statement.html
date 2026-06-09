@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>個人資產配置動態追蹤與試算系統</title>
+    <!-- 引入 Tailwind CSS、Chart.js 與 FontAwesome 圖標 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Warm Neutrals & Modern Accents 暖色系現代美學 -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #fcfaf6;
+            color: #434850;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 260px;
+        }
+
+        .card-shadow {
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.02), 0 4px 12px -2px rgba(0, 0, 0, 0.01);
+        }
+
+        .transition-all {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .tab-active {
+            background-color: #4a5d6e;
+            color: white;
+            box-shadow: 0 4px 12px rgba(74, 93, 110, 0.2);
+        }
+
+        /* 自訂輸入框焦點樣式 */
+        .input-focus:focus {
+            outline: none;
+            border-color: #4a5d6e;
+            box-shadow: 0 0 0 3px rgba(74, 93, 110, 0.15);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col pb-12">
+
+    <!-- 頂部精緻導覽列 -->
+    <nav class="bg-white border-b border-stone-200/60 sticky top-0 z-50 card-shadow">
+        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-stone-900 text-white p-2 rounded-xl">
+                    <i class="fa-solid fa-chart-pie text-lg"></i>
+                </div>
+                <div>
+                    <span class="font-extrabold text-base md:text-lg tracking-wide text-stone-800">AssetFlow</span>
+                    <span class="text-xs text-stone-400 block -mt-1 font-mono">Dynamic Portfolio Tracker</span>
+                </div>
+            </div>
+            
+            <!-- 月底結算按鍵（直接常駐在導覽列最顯眼處，方便手機操作） -->
+            <button onclick="triggerMonthEndSettlement()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs md:text-sm py-2 px-4 rounded-xl shadow-md hover:shadow-emerald-600/20 active:scale-95 transition-all flex items-center space-x-1.5 cursor-pointer">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <span>月底結算存檔</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- 主區塊 -->
+    <main class="max-w-6xl mx-auto px-4 mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6 w-full flex-grow">
+        
+        <!-- 左欄：動態參數設定控制台 -->
+        <div class="lg:col-span-1 space-y-6">
+            
+            <!-- 參數編輯面板 -->
+            <div class="bg-white p-5 rounded-2xl border border-stone-200/80 card-shadow space-y-4">
+                <h3 class="text-sm font-bold text-stone-800 flex items-center">
+                    <i class="fa-solid fa-sliders mr-2 text-stone-500"></i>即時市價設定
+                </h3>
+                
+                <div class="space-y-3.5">
+                    <div>
+                        <label class="block text-xs font-semibold text-stone-500 mb-1">0050 目前市價 (元)</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-stone-400 text-xs font-bold">NT$</span>
+                            <input type="number" id="input-0050-price" value="130" class="w-full bg-stone-50 border border-stone-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-stone-800 font-bold input-focus transition-all">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs font-semibold text-stone-500 mb-1">00981A 目前市價 (元)</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-stone-400 text-xs font-bold">NT$</span>
+                            <input type="number" id="input-00981-price" value="31" class="w-full bg-stone-50 border border-stone-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-stone-800 font-bold input-focus transition-all">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs font-semibold text-stone-500 mb-1">Aifian 保守年化回饋率 (%)</label>
+                        <div class="relative">
+                            <input type="number" id="input-aifian-rate" value="7" step="0.1" class="w-full bg-stone-50 border border-stone-200 rounded-xl pl-4 pr-10 py-2.5 text-sm text-stone-800 font-bold input-focus transition-all">
+                            <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-stone-400 text-xs font-bold">%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 初始建檔錨點資訊 -->
+                <div class="pt-3 border-t border-stone-100">
+                    <span class="text-[10px] font-bold text-stone-400 uppercase tracking-wider block mb-2">歷史起點記錄</span>
+                    <div class="bg-stone-50/80 p-2.5 rounded-xl text-xs text-stone-500 space-y-1 border border-stone-100">
+                        <div class="flex justify-between"><span>00981A 庫存</span><span class="font-bold text-stone-700">393 股</span></div>
+                        <div class="flex justify-between"><span>Aifian 本金</span><span class="font-bold text-stone-700">$147,000 元</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 計畫規則說明 -->
+            <div class="bg-stone-100/70 p-4 rounded-2xl border border-stone-200/40 text-xs text-stone-500 space-y-2">
+                <p class="font-bold text-stone-700 flex items-center"><i class="fa-solid fa-circle-info mr-1.5"></i> 定期定額計畫摘要</p>
+                <p>每個月定時定額投入 $15,000 元。其中分配 $10,000 扣款 00981A、分配 $5,000 扣款 0050。Aifian 的 14.7 萬資金不變，利息全數自動滾入生息。</p>
+            </div>
+        </div>
+
+        <!-- 右欄：核心數據分析、圖表與歷史 Log -->
+        <div class="lg:col-span-2 space-y-6">
+            
+            <!-- 大盤核心看板 -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="bg-white p-5 rounded-2xl border border-stone-200/80 card-shadow">
+                    <span class="text-xs font-bold text-stone-400 block">10 年預估最終累積資產</span>
+                    <div class="text-2xl md:text-3xl font-black text-stone-800 mt-1" id="display-total-value">NT$ 0</div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-stone-200/80 card-shadow">
+                    <span class="text-xs font-bold text-stone-400 block">10 年預估合併投資報酬率</span>
+                    <div class="text-2xl md:text-3xl font-black text-emerald-600 mt-1" id="display-roi">0.0%</div>
+                </div>
+            </div>
+
+            <!-- 核心時間點互動切換器 -->
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-bold text-stone-800 flex items-center">
+                        <i class="fa-regular fa-clock mr-2 text-stone-500"></i>時間段預估切換
+                    </h3>
+                    <span class="text-[10px] text-stone-400">點擊按鈕更新全站數據</span>
+                </div>
+                
+                <div class="grid grid-cols-4 gap-1.5 bg-stone-200/50 p-1 rounded-xl border border-stone-200/30">
+                    <button onclick="switchYear(0)" id="btn-yr-0" class="py-2 text-xs font-bold rounded-lg transition-all tab-active">初始</button>
+                    <button onclick="switchYear(1)" id="btn-yr-1" class="py-2 text-xs font-bold rounded-lg transition-all text-stone-600 hover:text-stone-800">1年後</button>
+                    <button onclick="switchYear(5)" id="btn-yr-5" class="py-2 text-xs font-bold rounded-lg transition-all text-stone-600 hover:text-stone-800">5年後</button>
+                    <button onclick="switchYear(10)" id="btn-yr-10" class="py-2 text-xs font-bold rounded-lg transition-all text-stone-600 hover:text-stone-800">10年後</button>
+                </div>
+
+                <!-- 動態卡片內容與圖表展示 -->
+                <div class="bg-white p-5 rounded-2xl border border-stone-200/80 card-shadow space-y-6">
+                    <div class="flex justify-between items-center border-b border-stone-100 pb-3">
+                        <span class="text-base font-bold text-stone-800" id="card-title">初始 階段資產全貌</span>
+                        <span class="text-xs font-bold text-stone-500 bg-stone-100 px-3 py-1 rounded-full font-mono" id="card-total-invest">總投入本金: --</span>
+                    </div>
+
+                    <!-- 雙圖表展示 (動態更新) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                        <!-- 圖表一：比例 -->
+                        <div>
+                            <h4 class="text-xs font-bold text-stone-400 mb-3 text-center">資產分布結構比</h4>
+                            <div class="chart-container">
+                                <canvas id="allocationChart"></canvas>
+                            </div>
+                        </div>
+                        <!-- 圖表二：結構 -->
+                        <div>
+                            <h4 class="text-xs font-bold text-stone-400 mb-3 text-center">投入本金與增值利息對比</h4>
+                            <div class="chart-container">
+                                <canvas id="growthChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 三大資產詳細卡片 -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-4 border-t border-stone-100">
+                        <!-- 00981A -->
+                        <div class="bg-stone-50 p-3.5 rounded-xl border border-stone-100 flex flex-col justify-between">
+                            <div>
+                                <span class="text-[10px] font-bold text-stone-400 block">00981A 國際半導體</span>
+                                <span class="text-lg font-black text-stone-700 mt-1 block" id="card-00981-val">$--</span>
+                            </div>
+                            <span class="text-[10px] text-stone-500 font-mono mt-2" id="card-00981-shares">累積: -- 張</span>
+                        </div>
+                        <!-- 0050 -->
+                        <div class="bg-stone-50 p-3.5 rounded-xl border border-stone-100 flex flex-col justify-between">
+                            <div>
+                                <span class="text-[10px] font-bold text-stone-400 block">0050 元大台灣50</span>
+                                <span class="text-lg font-black text-stone-700 mt-1 block" id="card-0050-val">$--</span>
+                            </div>
+                            <span class="text-[10px] text-stone-500 font-mono mt-2" id="card-0050-shares">累積: -- 張</span>
+                        </div>
+                        <!-- Aifian -->
+                        <div class="bg-stone-50 p-3.5 rounded-xl border border-stone-100 flex flex-col justify-between">
+                            <div>
+                                <span class="text-[10px] font-bold text-amber-500 block">Aifian 智能存款</span>
+                                <span class="text-lg font-black text-stone-700 mt-1 block" id="card-aifian-val">$--</span>
+                            </div>
+                            <span class="text-[10px] text-emerald-600 font-bold mt-2" id="card-aifian-interest">利息: --</span>
+                        </div>
+                    </div>
+
+                    <!-- 理財啟示 -->
+                    <div class="bg-stone-50 p-4 rounded-xl border-l-4 border-stone-500 text-xs text-stone-600 leading-relaxed" id="insight-text">
+                        正在載入說明...
+                    </div>
+                </div>
+            </div>
+
+            <!-- 月底存檔歷史記錄 Log -->
+            <div class="bg-white p-5 rounded-2xl border border-stone-200/80 card-shadow">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-sm font-bold text-stone-800 flex items-center">
+                        <i class="fa-solid fa-clock-rotate-left mr-2 text-amber-600"></i>歷史對帳與月底存檔紀錄
+                    </h3>
+                    <button onclick="clearHistory()" class="text-xs text-rose-500 font-bold hover:text-rose-400 transition-colors cursor-pointer">
+                        <i class="fa-regular fa-trash-can mr-1"></i>清除紀錄
+                    </button>
+                </div>
+                
+                <div class="overflow-x-auto rounded-xl border border-stone-100 bg-stone-50/50">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-stone-100 text-stone-500 font-bold border-b border-stone-200/60">
+                                <th class="p-3">對帳時間</th>
+                                <th class="p-3">0050價</th>
+                                <th class="p-3">00981A價</th>
+                                <th class="p-3">Aifian%</th>
+                                <th class="p-3 text-right">預估 10 年資產</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-log-body" class="text-stone-600 divide-y divide-stone-100">
+                            <!-- 歷史紀錄 -->
+                        </tbody>
+                    </table>
+                    <div id="no-history-text" class="text-center py-6 text-stone-400 text-xs hidden">
+                        目前尚無對帳存檔快照，點擊右上角「月底結算存檔」進行第一次對帳。
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- 頁尾 -->
+    <footer class="text-center text-stone-400 text-[10px] py-8 border-t border-stone-200/30 mt-12">
+        <p>© 2026 AssetFlow - 行動理財與資產配置追蹤系統</p>
+    </footer>
+
+    <script>
+        // 固定不變之初始值與定期定額預算
+        const init_00981_shares = 393;
+        const init_00981_cost = 11973;
+        const init_aifian_principal = 147000;
+        
+        const monthly_00981_budget = 10000;
+        const monthly_0050_budget = 5000;
+
+        let currentYear = 0; // 當前選擇的年份
+        let allocChart, growthChart; // Chart.js 實例
+
+        // 初始化
+        window.onload = function() {
+            initCharts();
+            setupEventListeners();
+            calculateAndRefresh();
+            renderHistoryLog();
+        };
+
+        // 綁定輸入框動態連動
+        function setupEventListeners() {
+            ['input-0050-price', 'input-00981-price', 'input-aifian-rate'].forEach(id => {
+                document.getElementById(id).addEventListener('input', calculateAndRefresh);
+            });
+        }
+
+        // 初始化圖表
+        function initCharts() {
+            const ctx1 = document.getElementById('allocationChart').getContext('2d');
+            const ctx2 = document.getElementById('growthChart').getContext('2d');
+
+            allocChart = new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: ['0050', '00981A', 'Aifian'],
+                    datasets: [{
+                        data: [0, 0, 0],
+                        backgroundColor: ['#60a5fa', '#475569', '#10b981'],
+                        borderWidth: 0,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    cutout: '72%'
+                }
+            });
+
+            growthChart = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: ['本金投入', '增值利息'],
+                    datasets: [{
+                        data: [0, 0],
+                        backgroundColor: ['#d6d3d1', '#10b981'],
+                        borderRadius: 8,
+                        barThickness: 32
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f5f5f4' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // 切換年份切換器
+        function switchYear(year) {
+            currentYear = year;
+            [0, 1, 5, 10].forEach(y => {
+                const btn = document.getElementById(`btn-yr-${y}`);
+                if (y === year) {
+                    btn.className = "py-2 text-xs font-bold rounded-lg transition-all tab-active";
+                } else {
+                    btn.className = "py-2 text-xs font-bold rounded-lg transition-all text-stone-600 hover:text-stone-800 hover:bg-stone-200/30";
+                }
+            });
+            calculateAndRefresh();
+        }
+
+        // 核心計算引擎與 UI 刷新
+        function calculateAndRefresh() {
+            // 讀取當前使用者設定的市場參數
+            const price_0050 = parseFloat(document.getElementById('input-0050-price').value) || 0;
+            const price_00981 = parseFloat(document.getElementById('input-00981-price').value) || 0;
+            const rate_aifian = (parseFloat(document.getElementById('input-aifian-rate').value) || 0) / 100;
+
+            // 計算每月購入股數
+            const monthly_shares_0050 = price_0050 > 0 ? (monthly_0050_budget / price_0050) : 0;
+            const monthly_shares_00981 = price_00981 > 0 ? (monthly_00981_budget / price_00981) : 0;
+
+            // 計算當前選擇年份的資產結構
+            const months = currentYear * 12;
+            
+            const accum_0050_shares = monthly_shares_0050 * months;
+            const val_0050 = accum_0050_shares * price_0050;
+
+            const accum_00981_shares = init_00981_shares + (monthly_shares_00981 * months);
+            const val_00981 = accum_00981_shares * price_00981;
+
+            const val_aifian = init_aifian_principal * Math.pow((1 + rate_aifian), currentYear);
+            const interest_aifian = val_aifian - init_aifian_principal;
+
+            const total_invested_this_period = ((monthly_0050_budget + monthly_00981_budget) * months) + init_00981_cost + init_aifian_principal;
+            const total_market_val_this_period = val_0050 + val_00981 + val_aifian;
+            const total_profit_this_period = Math.max(0, total_market_val_this_period - total_invested_this_period);
+
+            // 渲染當前時間段詳細數據
+            document.getElementById('card-title').innerText = currentYear === 0 ? "初始 階段資產全貌" : `${currentYear} 年後資產全貌`;
+            document.getElementById('card-total-invest').innerText = `總投入本金: $${Math.round(total_invested_this_period).toLocaleString()} 元`;
+            
+            document.getElementById('card-00981-shares').innerText = `累積: ${(accum_00981_shares / 1000).toFixed(2)} 張`;
+            document.getElementById('card-00981-val').innerText = `NT$ ${Math.round(val_00981).toLocaleString()}`;
+            
+            document.getElementById('card-0050-shares').innerText = `累積: ${(accum_0050_shares / 1000).toFixed(2)} 張`;
+            document.getElementById('card-0050-val').innerText = `NT$ ${Math.round(val_0050).toLocaleString()}`;
+            
+            document.getElementById('card-aifian-interest').innerText = `利息: +$${Math.round(interest_aifian).toLocaleString()}`;
+            document.getElementById('card-aifian-val').innerText = `NT$ ${Math.round(val_aifian).toLocaleString()}`;
+
+            // 動態理財啟示文字
+            let insightText = "";
+            if (currentYear === 0) {
+                insightText = `這是您的投資起點。初始配置中，Aifian 作為您的主要安全資產，提供了 $147,000 元的強大穩定底氣。`;
+            } else if (currentYear === 1) {
+                insightText = `第 1 年結束。定期定額已讓 00981A 累積至 ${(accum_00981_shares/1000).toFixed(2)} 張。Aifian 亦產生了 $${Math.round(interest_aifian).toLocaleString()} 元利息，複利雪球正式啟動。`;
+            } else if (currentYear === 5) {
+                insightText = `第 5 年大關！資產成功突破百萬。00981A 累積 ${(accum_00981_shares/1000).toFixed(1)} 張，且 Aifian 的累積利息已達 $${Math.round(interest_aifian).toLocaleString()} 元，為您提供無可替代的現金流防禦力。`;
+            } else {
+                insightText = `十年磨一劍，資產成功叩關兩百萬！Aifian 累積利息突破 $${Math.round(interest_aifian).toLocaleString()} 元，真正發揮了錢生錢的極致複利效果。`;
+            }
+            document.getElementById('insight-text').innerText = insightText;
+
+            // 更新圖表
+            allocChart.data.datasets[0].data = [val_0050, val_00981, val_aifian];
+            allocChart.update();
+
+            growthChart.data.datasets[0].data = [total_invested_this_period, total_profit_this_period];
+            growthChart.update();
+
+            // 計算 10 年長期大看板指標
+            const ten_months = 120;
+            const ten_val_0050 = (monthly_shares_0050 * ten_months) * price_0050;
+            const ten_val_00981 = (init_00981_shares + (monthly_shares_00981 * ten_months)) * price_00981;
+            const ten_val_aifian = init_aifian_principal * Math.pow((1 + rate_aifian), 10);
+            
+            const ten_total_value = ten_val_0050 + ten_val_00981 + ten_val_aifian;
+            const ten_total_invest = ((monthly_0050_budget + monthly_00981_budget) * ten_months) + init_00981_cost + init_aifian_principal;
+            const ten_roi = ((ten_total_value - ten_total_invest) / ten_total_invest) * 100;
+
+            document.getElementById('display-total-value').innerText = `NT$ ${Math.round(ten_total_value).toLocaleString()} 元`;
+            document.getElementById('display-roi').innerText = `${ten_roi >= 0 ? '+' : ''}${ten_roi.toFixed(1)}%`;
+        }
+
+        // 月底結算並存檔
+        function triggerMonthEndSettlement() {
+            const d = new Date();
+            const timeStr = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+            
+            const p0050 = document.getElementById('input-0050-price').value;
+            const p00981 = document.getElementById('input-00981-price').value;
+            const rAifian = document.getElementById('input-aifian-rate').value;
+            const totalVal = document.getElementById('display-total-value').innerText;
+
+            const newRecord = { timestamp: timeStr, p0050, p00981, rAifian, totalVal };
+            let history = JSON.parse(localStorage.getItem('asset_history_log')) || [];
+            history.unshift(newRecord);
+            localStorage.setItem('asset_history_log', JSON.stringify(history));
+            
+            renderHistoryLog();
+
+            // 顯示漂浮成功通知
+            const toast = document.createElement('div');
+            toast.className = "fixed top-20 left-1/2 -translate-x-1/2 bg-emerald-600 text-white font-bold px-6 py-3 rounded-2xl shadow-xl z-50 animate-bounce text-sm flex items-center space-x-2";
+            toast.innerHTML = `<i class="fa-solid fa-circle-check text-base"></i> <span>已存入本地歷史對帳紀錄！</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2500);
+        }
+
+        // 渲染歷史 Log
+        function renderHistoryLog() {
+            const history = JSON.parse(localStorage.getItem('asset_history_log')) || [];
+            const tbody = document.getElementById('history-log-body');
+            const noHistoryText = document.getElementById('no-history-text');
+            tbody.innerHTML = '';
+            
+            if (history.length === 0) {
+                noHistoryText.classList.remove('hidden');
+                return;
+            }
+            noHistoryText.classList.add('hidden');
+
+            history.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-stone-100/40 transition-colors border-b border-stone-100";
+                tr.innerHTML = `
+                    <td class="p-3 text-stone-400 font-mono">${item.timestamp}</td>
+                    <td class="p-3 font-bold text-stone-700">$${item.p0050}</td>
+                    <td class="p-3 font-bold text-stone-700">$${item.p00981}</td>
+                    <td class="p-3 font-bold text-emerald-600">${item.rAifian}%</td>
+                    <td class="p-3 text-right font-black text-stone-800">${item.totalVal}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // 清除歷史
+        function clearHistory() {
+            if (confirm('確定清除歷史對帳紀錄庫嗎？此操作將不可復原。')) {
+                localStorage.removeItem('asset_history_log');
+                renderHistoryLog();
+            }
+        }
+    </script>
+</body>
+</html>
