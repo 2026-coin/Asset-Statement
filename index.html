@@ -42,6 +42,13 @@
             border-color: #3e4e59;
             box-shadow: 0 0 0 3px rgba(62, 78, 89, 0.15);
         }
+
+        /* 國泰風格整張零股切換器 */
+        .cathay-toggle-active {
+            background-color: #00a040;
+            color: white;
+            box-shadow: 0 2px 8px rgba(0, 160, 64, 0.25);
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col pb-12">
@@ -77,14 +84,26 @@
     <!-- 主區塊 -->
     <main class="max-w-6xl mx-auto px-4 mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6 w-full flex-grow">
         
-        <!-- 左欄：匯率設定、資產清單與管理 -->
+        <!-- 左欄：國際匯率、資產清單與管理 -->
         <div class="lg:col-span-1 space-y-6">
             
-            <!-- 全域設定（匯率面板） -->
+            <!-- 全域設定（國際匯率面板） -->
             <div class="bg-white p-5 rounded-2xl border border-stone-200/80 card-shadow space-y-4">
-                <h3 class="text-sm font-bold text-stone-800 flex items-center pb-2 border-b border-stone-100">
-                    <i class="fa-solid fa-earth-asia mr-2 text-stone-500"></i>匯率與環境設定
-                </h3>
+                <div class="flex justify-between items-center pb-2 border-b border-stone-100">
+                    <h3 class="text-sm font-bold text-stone-800 flex items-center">
+                        <i class="fa-solid fa-earth-asia mr-2 text-stone-500"></i>國際匯率
+                    </h3>
+                    <div class="flex items-center space-x-1.5">
+                        <span class="flex h-2 w-2 relative">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" id="api-status-ping"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" id="api-status-dot"></span>
+                        </span>
+                        <span class="text-[10px] text-stone-400 font-bold" id="api-status-text">已連線幣托 (自動同步中)</span>
+                        <button onclick="fetchRealtimeRates()" class="text-stone-400 hover:text-stone-700 transition-colors ml-1 p-0.5" title="強制重新載入即時報價">
+                            <i class="fa-solid fa-rotate text-[11px]"></i>
+                        </button>
+                    </div>
+                </div>
                 
                 <div class="space-y-4">
                     <!-- 美金匯率 -->
@@ -92,7 +111,7 @@
                         <label class="block text-xs font-semibold text-stone-500 mb-1.5">美金換台幣 (USD/TWD)</label>
                         <div class="flex rounded-xl border border-stone-200 overflow-hidden bg-stone-50/50 input-focus-container transition-all">
                             <span class="bg-stone-100 text-stone-500 px-3.5 flex items-center text-xs font-bold border-r border-stone-200/80 select-none shrink-0 font-mono">1 USD =</span>
-                            <input type="number" id="input-usd-rate" value="32.5" step="0.1" class="w-full bg-transparent px-3 py-2.5 text-sm text-stone-800 font-extrabold focus:outline-none font-mono" oninput="calculateAndRefresh()">
+                            <input type="number" id="input-usd-rate" value="32.5" step="0.01" class="w-full bg-transparent px-3 py-2.5 text-sm text-stone-800 font-extrabold focus:outline-none font-mono" oninput="calculateAndRefresh()">
                             <span class="bg-stone-50 text-stone-400 px-3 flex items-center text-[10px] font-bold font-mono shrink-0 select-none border-l border-stone-200/80">TWD</span>
                         </div>
                     </div>
@@ -102,7 +121,7 @@
                         <label class="block text-xs font-semibold text-stone-500 mb-1.5">泰達幣換台幣 (USDT/TWD)</label>
                         <div class="flex rounded-xl border border-stone-200 overflow-hidden bg-stone-50/50 input-focus-container transition-all">
                             <span class="bg-stone-100 text-stone-500 px-3.5 flex items-center text-xs font-bold border-r border-stone-200/80 select-none shrink-0 font-mono">1 USDT =</span>
-                            <input type="number" id="input-usdt-rate" value="32.6" step="0.1" class="w-full bg-transparent px-3 py-2.5 text-sm text-stone-800 font-extrabold focus:outline-none font-mono" oninput="calculateAndRefresh()">
+                            <input type="number" id="input-usdt-rate" value="32.6" step="0.01" class="w-full bg-transparent px-3 py-2.5 text-sm text-stone-800 font-extrabold focus:outline-none font-mono" oninput="calculateAndRefresh()">
                             <span class="bg-stone-50 text-stone-400 px-3 flex items-center text-[10px] font-bold font-mono shrink-0 select-none border-l border-stone-200/80">TWD</span>
                         </div>
                     </div>
@@ -112,7 +131,17 @@
                         <label class="block text-xs font-semibold text-stone-500 mb-1.5">比特幣換台幣 (BTC/TWD)</label>
                         <div class="flex rounded-xl border border-stone-200 overflow-hidden bg-stone-50/50 input-focus-container transition-all">
                             <span class="bg-stone-100 text-stone-500 px-3.5 flex items-center text-xs font-bold border-r border-stone-200/80 select-none shrink-0 font-mono">1 BTC =</span>
-                            <input type="number" id="input-btc-rate" value="2150000" step="1000" class="w-full bg-transparent px-3 py-2.5 text-sm text-stone-800 font-extrabold focus:outline-none font-mono" oninput="calculateAndRefresh()">
+                            <input type="number" id="input-btc-rate" value="2150000" step="1" class="w-full bg-transparent px-3 py-2.5 text-sm text-stone-800 font-extrabold focus:outline-none font-mono" oninput="calculateAndRefresh()">
+                            <span class="bg-stone-50 text-stone-400 px-3 flex items-center text-[10px] font-bold font-mono shrink-0 select-none border-l border-stone-200/80">TWD</span>
+                        </div>
+                    </div>
+
+                    <!-- ETH 匯率 -->
+                    <div>
+                        <label class="block text-xs font-semibold text-stone-500 mb-1.5">乙太幣換台幣 (ETH/TWD)</label>
+                        <div class="flex rounded-xl border border-stone-200 overflow-hidden bg-stone-50/50 input-focus-container transition-all">
+                            <span class="bg-stone-100 text-stone-500 px-3.5 flex items-center text-xs font-bold border-r border-stone-200/80 select-none shrink-0 font-mono">1 ETH =</span>
+                            <input type="number" id="input-eth-rate" value="110000" step="1" class="w-full bg-transparent px-3 py-2.5 text-sm text-stone-800 font-extrabold focus:outline-none font-mono" oninput="calculateAndRefresh()">
                             <span class="bg-stone-50 text-stone-400 px-3 flex items-center text-[10px] font-bold font-mono shrink-0 select-none border-l border-stone-200/80">TWD</span>
                         </div>
                     </div>
@@ -142,7 +171,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="bg-white p-5 rounded-2xl border border-stone-200/80 card-shadow">
                     <span class="text-xs font-bold text-stone-400 block">10 年預估最終累積總資產 (折合台幣)</span>
-                    <div class="text-2xl md:text-3xl font-black text-stone-850 mt-1 font-mono tracking-tight" id="display-total-value">NT$ 0</div>
+                    <div class="text-2xl md:text-3xl font-black text-stone-855 mt-1 font-mono tracking-tight" id="display-total-value">NT$ 0</div>
                 </div>
                 <div class="bg-white p-5 rounded-2xl border border-stone-200/80 card-shadow">
                     <span class="text-xs font-bold text-stone-400 block">10 年預估合併投資報酬率 (ROI)</span>
@@ -227,95 +256,141 @@
     <!-- 新增 / 編輯資產 Modal 彈窗 -->
     <div id="assetModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4">
         <div class="bg-white w-full max-w-md rounded-2xl card-shadow overflow-hidden border border-stone-200">
-            <div class="bg-stone-900 text-white p-4 flex justify-between items-center">
-                <h3 class="font-bold text-sm" id="modal-title">新增理財標的</h3>
+            <!-- 彈窗頂端 -->
+            <div class="bg-stone-900 text-white p-4 flex justify-between items-center" id="modal-header-bg">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-circle-plus text-emerald-400" id="modal-header-icon"></i>
+                    <h3 class="font-bold text-sm" id="modal-title">新增理財標的</h3>
+                </div>
                 <button onclick="closeModal()" class="text-white/70 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             
             <div class="p-5 space-y-4">
                 <input type="hidden" id="edit-asset-id">
                 
+                <!-- 標的類型 -->
                 <div>
-                    <label class="block text-xs font-bold text-stone-500 mb-1">標的名稱 / 代號</label>
-                    <input type="text" id="modal-asset-name" placeholder="例如: TSLA, 0056, BTC-餘額" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm font-bold input-focus transition-all">
+                    <label class="block text-xs font-bold text-stone-500 mb-1.5">品項分類</label>
+                    <select id="modal-asset-type" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5 text-sm font-bold input-focus transition-all" onchange="toggleModalFields()">
+                        <option value="TAIWAN_STOCK">💰 台股 TWD</option>
+                        <option value="US_STOCK">💵 美股 USD</option>
+                        <option value="CRYPTO">🪙 虛擬貨幣 CRYPTO</option>
+                        <option value="AIFIAN">🧾 Aifian TWD</option>
+                    </select>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-stone-500 mb-1">標的類型</label>
-                        <select id="modal-asset-type" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5 text-sm font-bold input-focus transition-all" onchange="toggleModalFields()">
-                            <option value="stock">股票 (台/美股/加密幣單價)</option>
-                            <option value="savings">儲蓄 / Aifian (定存生息)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-stone-500 mb-1">計價貨幣</label>
-                        <select id="modal-asset-currency" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5 text-sm font-bold input-focus transition-all" onchange="updateModalCurrencyLabels()">
-                            <option value="TWD">新台幣 (TWD)</option>
-                            <option value="USD">美金 (USD)</option>
-                            <option value="USDT">泰達幣 (USDT)</option>
-                            <option value="BTC">比特幣 (BTC)</option>
-                        </select>
-                    </div>
+                <!-- 標的名稱 (Aifian 會自動隱藏此欄) -->
+                <div>
+                    <label class="block text-xs font-bold text-stone-500 mb-1.5" id="modal-label-name">標的名稱 / 代號</label>
+                    <input type="text" id="modal-asset-name" placeholder="例如: 0050, TSLA, BTC" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm font-bold input-focus transition-all">
                 </div>
 
-                <!-- 股票專用欄位 -->
+                <!-- 計價貨幣 (Aifian 會自動隱藏此欄) -->
+                <div id="modal-currency-container">
+                    <label class="block text-xs font-bold text-stone-500 mb-1.5">計價貨幣</label>
+                    <select id="modal-asset-currency" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5 text-sm font-bold input-focus transition-all" onchange="updateModalCurrencyLabels()">
+                        <option value="TWD">新台幣 (TWD)</option>
+                        <option value="USD">美金 (USD)</option>
+                        <option value="USDT">泰達幣 (USDT)</option>
+                        <option value="BTC">比特幣 (BTC)</option>
+                        <option value="ETH">乙太幣 (ETH)</option>
+                    </select>
+                </div>
+
+                <!-- 國泰證券特有：整張/零股切換器 -->
+                <div id="modal-taiwan-toggle-container" class="space-y-1.5">
+                    <label class="block text-xs font-bold text-stone-500">交易種類</label>
+                    <div class="grid grid-cols-2 gap-2 bg-stone-100 p-1 rounded-xl border border-stone-200/60">
+                        <button type="button" onclick="setTaiwanStockSubType('lot')" id="btn-stock-lot" class="py-2 text-xs font-bold rounded-lg transition-all cathay-toggle-active cursor-pointer">整張 (1000股)</button>
+                        <button type="button" onclick="setTaiwanStockSubType('odd')" id="btn-stock-odd" class="py-2 text-xs font-bold rounded-lg transition-all text-stone-600 hover:text-stone-800 cursor-pointer">零股 (單股)</button>
+                    </div>
+                    <input type="hidden" id="modal-taiwan-sub-type" value="lot">
+                </div>
+
+                <!-- 數額輸入區：股票 / 加密幣專用欄位 -->
                 <div id="modal-stock-fields" class="space-y-3">
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-bold text-stone-500 mb-1" id="modal-label-price">目前市場單價</label>
+                            <label class="block text-xs font-bold text-stone-500 mb-1.5" id="modal-label-price">市場股價</label>
                             <div class="flex rounded-xl border border-stone-200 overflow-hidden bg-stone-50/50 input-focus-container transition-all">
                                 <span class="bg-stone-100 text-stone-500 px-3 flex items-center text-[10px] font-bold border-r border-stone-200/80 select-none shrink-0 font-mono" id="modal-price-addon">TWD</span>
                                 <input type="number" id="modal-stock-price" step="0.000001" class="w-full bg-transparent px-3 py-2.5 text-sm text-stone-800 font-extrabold focus:outline-none font-mono">
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-stone-500 mb-1">每月定期投入金額</label>
+                            <label class="block text-xs font-bold text-stone-500 mb-1.5" id="modal-label-shares">購買數量</label>
                             <div class="flex rounded-xl border border-stone-200 overflow-hidden bg-stone-50/50 input-focus-container transition-all">
-                                <span class="bg-stone-100 text-stone-500 px-3 flex items-center text-[10px] font-bold border-r border-stone-200/80 select-none shrink-0 font-mono" id="modal-budget-addon">TWD</span>
-                                <input type="number" id="modal-stock-budget" class="w-full bg-transparent px-3 py-2.5 text-sm text-stone-800 font-extrabold focus:outline-none font-mono">
+                                <input type="number" id="modal-stock-init-shares" step="0.000001" class="w-full bg-transparent px-3 py-2.5 text-sm text-stone-800 font-extrabold focus:outline-none font-mono">
+                                <span class="bg-stone-100 text-stone-500 px-3 flex items-center text-[10px] font-bold border-l border-stone-200/80 select-none shrink-0" id="modal-shares-addon">張</span>
                             </div>
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs font-bold text-stone-500 mb-1">初始持股數量 (股/個)</label>
-                            <input type="number" id="modal-stock-init-shares" step="0.000001" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm font-bold input-focus transition-all font-mono">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-stone-500 mb-1">初始買進成本 (折合原幣)</label>
-                            <div class="flex rounded-xl border border-stone-200 overflow-hidden bg-stone-50/50 input-focus-container transition-all">
-                                <span class="bg-stone-100 text-stone-500 px-3 flex items-center text-[10px] font-bold border-r border-stone-200/80 select-none shrink-0 font-mono" id="modal-init-cost-addon">TWD</span>
-                                <input type="number" id="modal-stock-init-cost" class="w-full bg-transparent px-3 py-2.5 text-sm text-stone-800 font-extrabold focus:outline-none font-mono">
-                            </div>
+                    <div>
+                        <label class="block text-xs font-bold text-stone-500 mb-1.5" id="modal-label-cost">總成本</label>
+                        <div class="flex rounded-xl border border-stone-200 overflow-hidden bg-stone-50/50 input-focus-container transition-all">
+                            <span class="bg-stone-100 text-stone-500 px-3 flex items-center text-[10px] font-bold border-r border-stone-200/80 select-none shrink-0 font-mono" id="modal-init-cost-addon">TWD</span>
+                            <input type="number" id="modal-stock-init-cost" class="w-full bg-transparent px-3 py-2.5 text-sm text-stone-800 font-extrabold focus:outline-none font-mono">
                         </div>
                     </div>
                 </div>
 
-                <!-- 儲蓄/Aifian 專用欄位 -->
+                <!-- Aifian 專用欄位 -->
+                <div id="modal-aifian-fields" class="space-y-3 hidden">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-stone-500 mb-1.5">最低額度 (TWD)</label>
+                            <div class="flex rounded-xl border border-stone-200 overflow-hidden bg-stone-100 select-none">
+                                <span class="bg-stone-200 text-stone-500 px-3 flex items-center text-[10px] font-bold border-r border-stone-200/85 select-none shrink-0 font-mono">TWD</span>
+                                <input type="number" id="modal-aifian-min-limit" value="3000" readonly class="w-full bg-transparent px-3 py-2.5 text-sm text-stone-500 font-extrabold focus:outline-none font-mono">
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex items-center mb-1.5">
+                                <label class="block text-xs font-bold text-stone-500">購買數量</label>
+                                <span class="text-[10px] text-stone-400 font-normal ml-1 font-mono">(年收益率 7% 複利)</span>
+                            </div>
+                            <div class="flex rounded-xl border border-stone-200 overflow-hidden bg-stone-50/50 input-focus-container transition-all">
+                                <input type="number" id="modal-aifian-shares" step="1" min="1" placeholder="數量" class="w-full bg-transparent px-3 py-2.5 text-sm text-stone-800 font-extrabold focus:outline-none font-mono">
+                                <span class="bg-stone-100 text-stone-500 px-3 flex items-center text-[10px] font-bold border-l border-stone-200/80 select-none shrink-0">個</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-stone-500 mb-1.5">總成本</label>
+                        <div class="flex rounded-xl border border-stone-200 overflow-hidden bg-stone-100 select-none">
+                            <span class="bg-stone-200 text-stone-500 px-3 flex items-center text-[10px] font-bold border-r border-stone-200/85 select-none shrink-0 font-mono">TWD</span>
+                            <input type="number" id="modal-aifian-total-cost" readonly class="w-full bg-transparent px-3 py-2.5 text-sm text-stone-500 font-extrabold focus:outline-none font-mono">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 儲蓄/Aifian 專用舊欄位 (保留安全備用，新版已不直接呈現) -->
                 <div id="modal-savings-fields" class="space-y-3 hidden">
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-bold text-stone-500 mb-1">初始本金</label>
+                            <label class="block text-xs font-bold text-stone-500 mb-1.5" id="modal-label-savings-principal">初始本金</label>
                             <div class="flex rounded-xl border border-stone-200 overflow-hidden bg-stone-50/50 input-focus-container transition-all">
                                 <span class="bg-stone-100 text-stone-500 px-3 flex items-center text-[10px] font-bold border-r border-stone-200/80 select-none shrink-0 font-mono" id="modal-savings-principal-addon">TWD</span>
                                 <input type="number" id="modal-savings-principal" step="0.000001" class="w-full bg-transparent px-3 py-2.5 text-sm text-stone-800 font-extrabold focus:outline-none font-mono">
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-stone-500 mb-1">每月定期新增存款</label>
+                            <label class="block text-xs font-bold text-stone-500 mb-1.5">預估保守年收益率 (%)</label>
                             <div class="flex rounded-xl border border-stone-200 overflow-hidden bg-stone-50/50 input-focus-container transition-all">
-                                <span class="bg-stone-100 text-stone-500 px-3 flex items-center text-[10px] font-bold border-r border-stone-200/80 select-none shrink-0 font-mono" id="modal-savings-budget-addon">TWD</span>
-                                <input type="number" id="modal-savings-budget" class="w-full bg-transparent px-3 py-2.5 text-sm text-stone-800 font-extrabold focus:outline-none font-mono">
+                                <input type="number" id="modal-savings-rate" step="0.1" class="w-full bg-transparent px-3.5 py-2.5 text-sm text-stone-800 font-extrabold focus:outline-none font-mono">
+                                <span class="bg-stone-100 text-stone-500 px-3 flex items-center text-xs font-bold border-l border-stone-200/80 select-none shrink-0 font-mono">%</span>
                             </div>
                         </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-stone-500 mb-1">預估保守年收益率 (%)</label>
-                        <div class="flex rounded-xl border border-stone-200 overflow-hidden bg-stone-50/50 input-focus-container transition-all">
-                            <input type="number" id="modal-savings-rate" step="0.1" class="w-full bg-transparent px-3.5 py-2.5 text-sm text-stone-800 font-extrabold focus:outline-none font-mono">
-                            <span class="bg-stone-100 text-stone-500 px-3 flex items-center text-xs font-bold border-l border-stone-200/80 select-none shrink-0 font-mono">%</span>
-                        </div>
+                </div>
+
+                <!-- 定期定額設定區塊 (僅台股與儲蓄需要) -->
+                <div id="modal-regular-investment-container" class="space-y-1.5 pt-2 border-t border-stone-100">
+                    <label class="block text-xs font-bold text-stone-500" id="modal-regular-budget-title">定期定額計畫</label>
+                    <div class="flex rounded-xl border border-stone-200 overflow-hidden bg-stone-50/50 input-focus-container transition-all">
+                        <span class="bg-stone-100 text-stone-500 px-3 flex items-center text-[10px] font-bold border-r border-stone-200/80 select-none shrink-0 font-mono" id="modal-budget-addon">TWD</span>
+                        <input type="number" id="modal-stock-budget" placeholder="若無請填0" class="w-full bg-transparent px-3 py-2.5 text-sm text-stone-800 font-extrabold focus:outline-none font-mono">
+                        <span class="bg-stone-50 text-stone-400 px-3 flex items-center text-[10px] font-bold shrink-0 select-none border-l border-stone-200/80">/ 每月</span>
                     </div>
                 </div>
 
@@ -332,31 +407,133 @@
         <p>© 2026 AssetFlow - 行動理財與多資產動態配置管理系統</p>
     </footer>
 
+    <!-- 自製浮動彈窗 Toast 容器 -->
+    <div id="toast-container" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center space-y-2 pointer-events-none"></div>
+
     <script>
         // 預設之初始配置檔（包含 0050、00981A、Aifian）
         const DEFAULT_ASSETS = [
-            { id: '1', name: '00981A 國際半導體', type: 'stock', currency: 'TWD', price: 31, initialShares: 393, initialCost: 11973, monthlyBudget: 10000 },
-            { id: '2', name: '0050 元大台灣50', type: 'stock', currency: 'TWD', price: 130, initialShares: 0, initialCost: 0, monthlyBudget: 5000 },
-            { id: '3', name: 'Aifian 智能存款', type: 'savings', currency: 'TWD', principal: 147000, monthlyBudget: 0, annualRate: 7 }
+            { id: '1', name: '00981A 國際半導體', type: 'TAIWAN_STOCK', subType: 'lot', currency: 'TWD', price: 31, initialShares: 393, initialCost: 11973, monthlyBudget: 10000 },
+            { id: '2', name: '0050 元大台灣50', type: 'TAIWAN_STOCK', subType: 'lot', currency: 'TWD', price: 130, initialShares: 0, initialCost: 0, monthlyBudget: 5000 },
+            { id: '3', name: 'Aifian 智能存款', type: 'AIFIAN', currency: 'TWD', principal: 147000, initialShares: 49, annualRate: 7 }
         ];
 
         let assets = [];
         let currentYear = 0; // 0=初始, 1=1年後, 5=5年後, 10=10年後
         let allocChart, growthChart;
 
-        window.onload = function() {
+        window.onload = async function() {
             loadAssets();
             initCharts();
+            setupEventListeners();
+            // 首次啟動：自動偵測並同步最新國際匯率與虛擬幣價格
+            await fetchRealtimeRates();
             calculateAndRefresh();
             renderHistoryLog();
-            setupEventListeners();
         };
 
-        // 從 LocalStorage 載入資產，若無則載入預設
+        // 自製通知彈窗替代傳統 alert()
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const bgClass = type === 'success' ? 'bg-emerald-600' : 'bg-rose-600';
+            const iconClass = type === 'success' ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-exclamation';
+            
+            toast.className = `${bgClass} text-white font-bold px-6 py-3 rounded-2xl shadow-xl animate-bounce text-xs flex items-center space-x-2 pointer-events-auto transition-opacity duration-300`;
+            toast.innerHTML = `<i class="${iconClass}"></i> <span>${message}</span>`;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 2500);
+        }
+
+        // 串接幣托 BitoPro 與開源匯率 API 自動偵測國際匯率
+        async function fetchRealtimeRates() {
+            const statusDot = document.getElementById('api-status-dot');
+            const statusPing = document.getElementById('api-status-ping');
+            const statusText = document.getElementById('api-status-text');
+            
+            if (statusDot) {
+                statusDot.className = "relative inline-flex rounded-full h-2 w-2 bg-amber-500 animate-pulse";
+                if (statusPing) statusPing.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75";
+                statusText.innerText = "正在偵測國際匯率...";
+            }
+
+            try {
+                // 1. 抓取幣托 BitoPro BTC/TWD 即時最後成交價
+                const btcRes = await fetch('https://api.bitopro.com/v3/tickers/btc_twd');
+                const btcData = await btcRes.json();
+                if (btcData && btcData.data && btcData.data.lastPrice) {
+                    const btcPrice = parseFloat(btcData.data.lastPrice);
+                    document.getElementById('input-btc-rate').value = Math.round(btcPrice);
+                }
+
+                // 2. 抓取幣托 BitoPro ETH/TWD 即時最後成交價
+                const ethRes = await fetch('https://api.bitopro.com/v3/tickers/eth_twd');
+                const ethData = await ethRes.json();
+                if (ethData && ethData.data && ethData.data.lastPrice) {
+                    const ethPrice = parseFloat(ethData.data.lastPrice);
+                    document.getElementById('input-eth-rate').value = Math.round(ethPrice);
+                }
+
+                // 3. 抓取幣托 BitoPro USDT/TWD 即時最後成交價
+                const usdtRes = await fetch('https://api.bitopro.com/v3/tickers/usdt_twd');
+                const usdtData = await usdtRes.json();
+                if (usdtData && usdtData.data && usdtData.data.lastPrice) {
+                    const usdtPrice = parseFloat(usdtData.data.lastPrice);
+                    document.getElementById('input-usdt-rate').value = usdtPrice.toFixed(2);
+                }
+
+                // 4. 抓取全球開放匯率介面 (USD/TWD)
+                const usdRes = await fetch('https://open.er-api.com/v6/latest/USD');
+                const usdData = await usdRes.json();
+                if (usdData && usdData.rates && usdData.rates.TWD) {
+                    const usdPrice = parseFloat(usdData.rates.TWD);
+                    document.getElementById('input-usd-rate').value = usdPrice.toFixed(2);
+                }
+
+                // 更新連線成功狀態
+                if (statusDot) {
+                    statusDot.className = "relative inline-flex rounded-full h-2 w-2 bg-emerald-500";
+                    if (statusPing) statusPing.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75";
+                    statusText.innerText = "已連線幣托 (自動同步中)";
+                }
+            } catch (err) {
+                console.error("無法同步幣值價格:", err);
+                if (statusDot) {
+                    statusDot.className = "relative inline-flex rounded-full h-2 w-2 bg-rose-500";
+                    if (statusPing) statusPing.className = "hidden";
+                    statusText.innerText = "無法連線幣托 (已載入本地緩存)";
+                }
+            }
+        }
+
+        // 從 LocalStorage 載入資產，若無則載入預設，同步做大寫升級與 Aifian 機制修正
         function loadAssets() {
             const stored = localStorage.getItem('asset_tracker_portfolio');
             if (stored) {
                 assets = JSON.parse(stored);
+                // 相容性升級：將小寫型態自動對齊為大寫，且將 SAVINGS 自動移轉並升級為全新 AIFIAN 模組
+                assets.forEach(a => {
+                    if (a.type === 'stock' || a.type === 'taiwan-stock') {
+                        a.type = 'TAIWAN_STOCK';
+                        a.subType = a.subType || 'lot';
+                    } else if (a.type === 'us-stock') {
+                        a.type = 'US_STOCK';
+                    } else if (a.type === 'crypto') {
+                        a.type = 'CRYPTO';
+                    } else if (a.type === 'savings' || a.type === 'SAVINGS') {
+                        a.type = 'AIFIAN';
+                        a.principal = a.principal || 147000;
+                        a.initialShares = a.initialShares || Math.round(a.principal / 3000);
+                        a.annualRate = 7;
+                        a.currency = 'TWD';
+                    }
+                });
             } else {
                 assets = JSON.parse(JSON.stringify(DEFAULT_ASSETS));
                 saveAssetsToStorage();
@@ -428,14 +605,58 @@
             calculateAndRefresh();
         }
 
-        // 監聽所有環境匯率輸入，即時刷新
+        // 監聽所有環境匯率輸入與彈窗自動加總監聽，即時刷新
         function setupEventListeners() {
-            ['input-usd-rate', 'input-usdt-rate', 'input-btc-rate'].forEach(id => {
+            ['input-usd-rate', 'input-usdt-rate', 'input-btc-rate', 'input-eth-rate'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) {
                     el.addEventListener('input', calculateAndRefresh);
                 }
             });
+
+            // 總成本即時自動加總計算連動
+            document.getElementById('modal-stock-price').addEventListener('input', calculateModalTotalCost);
+            document.getElementById('modal-stock-init-shares').addEventListener('input', calculateModalTotalCost);
+            
+            // Aifian 總成本即時加總(最低額度3000 x 購買數量)
+            document.getElementById('modal-aifian-shares').addEventListener('input', calculateModalTotalCost);
+        }
+
+        // 總成本選項自動加總計算
+        function calculateModalTotalCost() {
+            const type = document.getElementById('modal-asset-type').value;
+            
+            if (type === 'AIFIAN') {
+                const shares = parseFloat(document.getElementById('modal-aifian-shares').value) || 0;
+                const cost = 3000 * shares;
+                document.getElementById('modal-aifian-total-cost').value = cost > 0 ? cost : "";
+                return;
+            }
+
+            const price = parseFloat(document.getElementById('modal-stock-price').value) || 0;
+            const shares = parseFloat(document.getElementById('modal-stock-init-shares').value) || 0;
+            let cost = 0;
+
+            if (type === 'TAIWAN_STOCK') {
+                const subType = document.getElementById('modal-taiwan-sub-type').value;
+                if (subType === 'lot') {
+                    // 整張 (1000股)
+                    cost = price * shares * 1000;
+                } else {
+                    // 零股
+                    cost = price * shares;
+                }
+            } else {
+                // 美股與加密幣
+                cost = price * shares;
+            }
+
+            // 更新總成本輸入框
+            if (cost > 0) {
+                document.getElementById('modal-stock-init-cost').value = parseFloat(cost.toFixed(6));
+            } else {
+                document.getElementById('modal-stock-init-cost').value = "";
+            }
         }
 
         // 取得當前特定貨幣的台幣折算率
@@ -443,10 +664,12 @@
             const usdToTwd = parseFloat(document.getElementById('input-usd-rate').value) || 32.5;
             const usdtToTwd = parseFloat(document.getElementById('input-usdt-rate').value) || 32.6;
             const btcToTwd = parseFloat(document.getElementById('input-btc-rate').value) || 2150000;
+            const ethToTwd = parseFloat(document.getElementById('input-eth-rate').value) || 110000;
 
             if (currency === 'USD') return usdToTwd;
             if (currency === 'USDT') return usdtToTwd;
             if (currency === 'BTC') return btcToTwd;
+            if (currency === 'ETH') return ethToTwd;
             return 1; // TWD
         }
 
@@ -472,34 +695,34 @@
                 let invested = 0;
                 let detailStr = "";
 
-                if (asset.type === 'stock') {
+                if (asset.type === 'TAIWAN_STOCK' || asset.type === 'US_STOCK' || asset.type === 'CRYPTO') {
                     const priceTwd = asset.price * rate;
-                    const budgetTwd = asset.monthlyBudget * rate;
-                    const initCostTwd = asset.initialCost * rate;
+                    const budgetTwd = (asset.monthlyBudget || 0) * rate;
+                    const initCostTwd = (asset.initialCost || 0) * rate;
 
                     const accumulatedShares = asset.initialShares + (priceTwd > 0 ? (budgetTwd / priceTwd) * months : 0);
                     val = accumulatedShares * priceTwd;
                     invested = initCostTwd + (budgetTwd * months);
-                    detailStr = `累積: ${(accumulatedShares / 1000).toFixed(4)} 張 (${accumulatedShares.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 6})} 股)`;
-                } else if (asset.type === 'savings') {
-                    const principalTwd = asset.principal * rate;
-                    const budgetTwd = asset.monthlyBudget * rate;
-                    const r = (asset.annualRate || 0) / 100;
-
-                    // 儲蓄本息和複利公式
-                    let fvPrincipal = principalTwd * Math.pow(1 + r, currentYear);
-                    let fvAnnuity = 0;
-                    if (budgetTwd > 0 && r > 0) {
-                        const monthlyRate = r / 12;
-                        fvAnnuity = budgetTwd * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate) * (1 + monthlyRate);
-                    } else if (budgetTwd > 0) {
-                        fvAnnuity = budgetTwd * months;
-                    }
-
-                    val = fvPrincipal + fvAnnuity;
-                    invested = principalTwd + (budgetTwd * months);
                     
-                    // 儲蓄型公式拆解：本金 + 年收益利息 = 黑色總金額 (皆已折合台幣)
+                    if (asset.type === 'TAIWAN_STOCK') {
+                        const totalLots = accumulatedShares / 1000;
+                        detailStr = `累積: ${totalLots.toFixed(2)} 張 (${Math.round(accumulatedShares).toLocaleString()} 股)`;
+                    } else if (asset.type === 'US_STOCK') {
+                        detailStr = `累積: ${accumulatedShares.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 4})} 股`;
+                    } else if (asset.type === 'CRYPTO') {
+                        detailStr = `累積: ${accumulatedShares.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 6})} 單位`;
+                    }
+                } else if (asset.type === 'AIFIAN') {
+                    // Aifian 智能互動額度複利模型 (利息留存再投入)
+                    const principalTwd = (asset.initialShares * 3000) * rate;
+                    const r = 0.07; // 保守固定 7% 年複利成長
+
+                    let fvPrincipal = principalTwd * Math.pow(1 + r, currentYear);
+
+                    val = fvPrincipal;
+                    invested = principalTwd;
+                    
+                    // 拆解 Aifian 計算公式為：本金 + 7%複利累積利息 = 帳戶總價值
                     const totalInterest = val - invested;
                     detailStr = `本金 NT$ ${Math.round(invested).toLocaleString()} + 利息 NT$ ${Math.round(totalInterest).toLocaleString()} = NT$ ${Math.round(val).toLocaleString()}`;
                 }
@@ -515,29 +738,44 @@
                 if (asset.currency === 'USD') currencySymbol = 'USD ';
                 if (asset.currency === 'USDT') currencySymbol = 'USDT ';
                 if (asset.currency === 'BTC') currencySymbol = 'BTC ';
+                if (asset.currency === 'ETH') currencySymbol = 'ETH ';
 
-                const displayPrice = asset.type === 'stock' ? `${currencySymbol}${asset.price.toLocaleString(undefined, {maximumFractionDigits: 6})}` : `年化 ${asset.annualRate}%`;
+                const displayPrice = (asset.type !== 'AIFIAN') 
+                    ? `${currencySymbol}${asset.price.toLocaleString(undefined, {maximumFractionDigits: 6})}` 
+                    : `年化 7.0%`;
                 
+                // 動態取得對應標的類型的徽章圖示與配色
+                let typeBadge = "";
+                if (asset.type === 'TAIWAN_STOCK') {
+                    typeBadge = `<span class="text-[9px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded font-extrabold shrink-0">💰 國泰台股</span>`;
+                } else if (asset.type === 'US_STOCK') {
+                    typeBadge = `<span class="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-extrabold shrink-0">💵 eToro美股</span>`;
+                } else if (asset.type === 'CRYPTO') {
+                    typeBadge = `<span class="text-[9px] bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded font-extrabold shrink-0">🪙 幣托加密</span>`;
+                } else if (asset.type === 'AIFIAN') {
+                    typeBadge = `<span class="text-[9px] bg-stone-100 text-stone-600 px-1.5 py-0.5 rounded font-extrabold shrink-0">🧾 Aifian</span>`;
+                }
+
                 const card = document.createElement('div');
                 card.className = "bg-white p-4 rounded-2xl border border-stone-200/60 card-shadow flex flex-col justify-between";
                 
                 let bottomHTML = "";
-                if (asset.type === 'stock') {
-                    bottomHTML = `
-                        <div class="flex justify-between items-center mt-3 text-[10px] text-stone-500 font-mono">
-                            <span class="truncate pr-1">${detailStr}</span>
-                            <span class="text-stone-400 shrink-0">現價: ${displayPrice}</span>
-                        </div>
-                    `;
-                } else {
+                if (asset.type === 'AIFIAN') {
                     bottomHTML = `
                         <div class="mt-3 text-[10px] text-stone-500 space-y-1">
                             <div class="flex justify-between items-center font-mono text-stone-400">
-                                <span>標的設定: ${displayPrice}</span>
+                                <span>標的設定: 1 額度 = NT$ 3,000 (${displayPrice})</span>
                             </div>
                             <div class="text-[10px] font-semibold text-stone-500 bg-stone-100 p-2 rounded-xl mt-1 border border-stone-200/30 leading-relaxed font-mono">
                                 ${detailStr}
                             </div>
+                        </div>
+                    `;
+                } else {
+                    bottomHTML = `
+                        <div class="flex justify-between items-center mt-3 text-[10px] text-stone-500 font-mono">
+                            <span class="truncate pr-1">${detailStr}</span>
+                            <span class="text-stone-400 shrink-0">現價: ${displayPrice}</span>
                         </div>
                     `;
                 }
@@ -546,24 +784,33 @@
                     <div>
                         <div class="flex justify-between items-start">
                             <span class="text-[10px] font-bold text-stone-400 block truncate pr-2" title="${asset.name}">${asset.name}</span>
-                            <span class="text-[9px] bg-stone-100 px-1.5 py-0.5 rounded font-extrabold text-stone-500 font-mono shrink-0">${asset.currency}</span>
+                            <div class="flex items-center space-x-1 shrink-0">
+                                ${typeBadge}
+                                <span class="text-[9px] bg-stone-100 px-1.5 py-0.5 rounded font-extrabold text-stone-500 font-mono">${asset.currency}</span>
+                            </div>
                         </div>
-                        <span class="text-base font-black text-stone-750 mt-1 block font-mono">NT$ ${Math.round(val).toLocaleString()}</span>
+                        <span class="text-base font-black text-stone-755 mt-1 block font-mono">NT$ ${Math.round(val).toLocaleString()}</span>
                     </div>
                     ${bottomHTML}
                 `;
                 detailCardsContainer.appendChild(card);
 
-                // 產生左側管理清單
+                // 產生 left 側管理清單
                 const item = document.createElement('div');
                 item.className = "bg-stone-50/70 p-3 rounded-xl border border-stone-100 flex justify-between items-center";
                 
                 const currencyUnit = asset.currency;
-                const monthlyTxt = asset.type === 'stock' ? `每月投 ${currencyUnit} ${asset.monthlyBudget.toLocaleString()}` : `每月存 ${currencyUnit} ${asset.monthlyBudget.toLocaleString()}`;
+                let monthlyTxt = "";
+                if (asset.type === 'AIFIAN') {
+                    monthlyTxt = `持有數量: ${asset.initialShares.toLocaleString()} 額度`;
+                } else {
+                    monthlyTxt = (asset.monthlyBudget > 0) ? `每月投 ${currencyUnit} ${asset.monthlyBudget.toLocaleString()}` : '無定期定額';
+                }
+                
                 item.innerHTML = `
                     <div class="truncate pr-2">
                         <p class="text-xs font-bold text-stone-800 truncate" title="${asset.name}">${asset.name}</p>
-                        <p class="text-[10px] text-stone-400 font-mono">${monthlyTxt}</p>
+                        <p class="text-[10px] text-stone-400 font-mono">${currencyUnit} | ${monthlyTxt}</p>
                     </div>
                     <div class="flex space-x-1 shrink-0">
                         <button onclick="editAsset('${asset.id}')" class="text-stone-500 hover:text-stone-800 p-1.5 text-xs cursor-pointer"><i class="fa-regular fa-pen-to-square"></i></button>
@@ -585,27 +832,19 @@
             let tenYearInvestTwd = 0;
             assets.forEach(asset => {
                 const rate = getCurrencyRate(asset.currency);
-                if (asset.type === 'stock') {
+                if (asset.type === 'TAIWAN_STOCK' || asset.type === 'US_STOCK' || asset.type === 'CRYPTO') {
                     const priceTwd = asset.price * rate;
-                    const budgetTwd = asset.monthlyBudget * rate;
-                    const initCostTwd = asset.initialCost * rate;
+                    const budgetTwd = (asset.monthlyBudget || 0) * rate;
+                    const initCostTwd = (asset.initialCost || 0) * rate;
                     const accumulatedShares = asset.initialShares + (priceTwd > 0 ? (budgetTwd / priceTwd) * 120 : 0);
                     tenYearValTwd += accumulatedShares * priceTwd;
                     tenYearInvestTwd += initCostTwd + (budgetTwd * 120);
-                } else if (asset.type === 'savings') {
-                    const principalTwd = asset.principal * rate;
-                    const budgetTwd = asset.monthlyBudget * rate;
-                    const r = (asset.annualRate || 0) / 100;
+                } else if (asset.type === 'AIFIAN') {
+                    const principalTwd = (asset.initialShares * 3000) * rate;
+                    const r = 0.07;
                     let fvPrincipal = principalTwd * Math.pow(1 + r, 10);
-                    let fvAnnuity = 0;
-                    if (budgetTwd > 0 && r > 0) {
-                        const monthlyRate = r / 12;
-                        fvAnnuity = budgetTwd * ((Math.pow(1 + monthlyRate, 120) - 1) / monthlyRate) * (1 + monthlyRate);
-                    } else if (budgetTwd > 0) {
-                        fvAnnuity = budgetTwd * 120;
-                    }
-                    tenYearValTwd += fvPrincipal + fvAnnuity;
-                    tenYearInvestTwd += principalTwd + (budgetTwd * 120);
+                    tenYearValTwd += fvPrincipal;
+                    tenYearInvestTwd += principalTwd;
                 }
             });
 
@@ -629,35 +868,191 @@
             const priceAddon = document.getElementById('modal-price-addon');
             const budgetAddon = document.getElementById('modal-budget-addon');
             const initCostAddon = document.getElementById('modal-init-cost-addon');
-            const savingsPrincipalAddon = document.getElementById('modal-savings-principal-addon');
-            const savingsBudgetAddon = document.getElementById('modal-savings-budget-addon');
             
             if (priceAddon) priceAddon.innerText = currency;
             if (budgetAddon) budgetAddon.innerText = currency;
             if (initCostAddon) initCostAddon.innerText = currency;
-            if (savingsPrincipalAddon) savingsPrincipalAddon.innerText = currency;
-            if (savingsBudgetAddon) savingsBudgetAddon.innerText = currency;
         }
 
-        // 開啟 Modal 彈窗 (新增)
+        // 輔助函式：動態過濾並更新計價貨幣下拉選單的選項
+        function updateCurrencyDropdownOptions(allowed) {
+            const select = document.getElementById('modal-asset-currency');
+            Array.from(select.options).forEach(opt => {
+                if (allowed.includes(opt.value)) {
+                    opt.style.display = 'block';
+                    opt.disabled = false;
+                } else {
+                    opt.style.display = 'none';
+                    opt.disabled = true;
+                }
+            });
+        }
+
+        // 國泰風格：切換台股的「整張」與「零股」子分類並即時重算總成本
+        function setTaiwanStockSubType(subType) {
+            document.getElementById('modal-taiwan-sub-type').value = subType;
+            const btnLot = document.getElementById('btn-stock-lot');
+            const btnOdd = document.getElementById('btn-stock-odd');
+            const sharesAddon = document.getElementById('modal-shares-addon');
+            
+            if (subType === 'lot') {
+                btnLot.className = "py-2 text-xs font-bold rounded-lg transition-all cathay-toggle-active cursor-pointer";
+                btnOdd.className = "py-2 text-xs font-bold rounded-lg transition-all text-stone-600 hover:text-stone-800 cursor-pointer";
+                sharesAddon.innerText = "張";
+                document.getElementById('modal-label-shares').innerText = "購買數量 (張) [ 1張 = 1000股 ]";
+            } else {
+                btnLot.className = "py-2 text-xs font-bold rounded-lg transition-all text-stone-600 hover:text-stone-800 cursor-pointer";
+                btnOdd.className = "py-2 text-xs font-bold rounded-lg transition-all cathay-toggle-active cursor-pointer";
+                sharesAddon.innerText = "股";
+                document.getElementById('modal-label-shares').innerText = "購買數量 (零股)";
+            }
+            calculateModalTotalCost();
+        }
+
+        // 當切換資產類型時，動態調整對應的輸入框標籤、提示語、限定計價幣別，並調整定期定額的顯示與成本重算
+        function toggleModalFields() {
+            const type = document.getElementById('modal-asset-type').value;
+            const currencySelect = document.getElementById('modal-asset-currency');
+            const taiwanToggle = document.getElementById('modal-taiwan-toggle-container');
+            const regularInvestmentArea = document.getElementById('modal-regular-investment-container');
+            const stockFieldsArea = document.getElementById('modal-stock-fields');
+            const savingsFieldsArea = document.getElementById('modal-savings-fields');
+            const aifianFieldsArea = document.getElementById('modal-aifian-fields');
+            const nameInputContainer = document.getElementById('modal-label-name').parentElement;
+            const currencyInputContainer = document.getElementById('modal-currency-container');
+            
+            // 每次切換前，先暫時解除貨幣下拉選單的鎖定與隱藏狀態，方便重設
+            currencySelect.disabled = false;
+            Array.from(currencySelect.options).forEach(opt => {
+                opt.style.display = 'block';
+                opt.disabled = false;
+            });
+
+            // 預設樣式還原
+            document.getElementById('modal-header-bg').className = "text-white p-4 flex justify-between items-center bg-stone-900";
+            document.getElementById('modal-header-icon').className = "fa-solid fa-circle-plus text-emerald-400";
+            
+            // Aifian 隱藏與顯示重置機制
+            nameInputContainer.classList.remove('hidden');
+            currencyInputContainer.classList.remove('hidden');
+            aifianFieldsArea.classList.add('hidden');
+
+            if (type === 'TAIWAN_STOCK') {
+                // 台股
+                document.getElementById('modal-header-bg').className = "text-white p-4 flex justify-between items-center bg-emerald-700";
+                document.getElementById('modal-header-icon').className = "fa-solid fa-tree text-white animate-pulse";
+                
+                currencySelect.value = 'TWD';
+                currencySelect.disabled = true; // 鎖定台幣
+                updateCurrencyDropdownOptions(['TWD']);
+
+                taiwanToggle.classList.remove('hidden');
+                regularInvestmentArea.classList.remove('hidden'); // 開放定期定額
+                stockFieldsArea.classList.remove('hidden');
+                savingsFieldsArea.classList.add('hidden');
+                
+                // 動態設定台股表單標籤
+                document.getElementById('modal-label-price').innerText = "市場股價 (TWD/股)";
+                document.getElementById('modal-label-cost').innerText = "總成本 (台幣 TWD)";
+                document.getElementById('modal-shares-addon').innerText = "張";
+                setTaiwanStockSubType(document.getElementById('modal-taiwan-sub-type').value || 'lot');
+                
+            } else if (type === 'US_STOCK') {
+                // 美股
+                document.getElementById('modal-header-bg').className = "text-white p-4 flex justify-between items-center bg-blue-800";
+                document.getElementById('modal-header-icon').className = "fa-solid fa-flag-usa text-white";
+                
+                currencySelect.value = 'USD';
+                currencySelect.disabled = true; // 鎖定美金
+                updateCurrencyDropdownOptions(['USD']);
+
+                taiwanToggle.classList.add('hidden');
+                regularInvestmentArea.classList.add('hidden'); // 美股無定期定額
+                stockFieldsArea.classList.remove('hidden');
+                savingsFieldsArea.classList.add('hidden');
+                
+                // 動態設定美股表單標籤
+                document.getElementById('modal-label-price').innerText = "市場股價 (USD/股)";
+                document.getElementById('modal-label-shares').innerText = "購買數量 (股 - 支援小數碎股)";
+                document.getElementById('modal-label-cost').innerText = "總成本 (美金 USD)";
+                document.getElementById('modal-shares-addon').innerText = "股";
+                
+            } else if (type === 'CRYPTO') {
+                // 虛擬貨幣
+                document.getElementById('modal-header-bg').className = "text-white p-4 flex justify-between items-center bg-amber-600";
+                document.getElementById('modal-header-icon').className = "fa-solid fa-coins text-white animate-pulse";
+                
+                // 依照要求：虛擬貨幣只保留 TWD 與 USD 兩種計價貨幣
+                if (currencySelect.value !== 'USD' && currencySelect.value !== 'TWD') {
+                    currencySelect.value = 'USD';
+                }
+                updateCurrencyDropdownOptions(['USD', 'TWD']);
+
+                taiwanToggle.classList.add('hidden');
+                regularInvestmentArea.classList.add('hidden'); // 虛擬貨幣無定期定額
+                stockFieldsArea.classList.remove('hidden');
+                savingsFieldsArea.classList.add('hidden');
+                
+                // 動態設定加密貨幣表單標籤
+                document.getElementById('modal-label-price').innerText = "市場股價 (美元,台幣)";
+                document.getElementById('modal-label-shares').innerText = "購買數量";
+                document.getElementById('modal-label-cost').innerText = "總成本";
+                document.getElementById('modal-shares-addon').innerText = "單位";
+                
+            } else if (type === 'AIFIAN') {
+                // Aifian
+                document.getElementById('modal-header-bg').className = "text-white p-4 flex justify-between items-center bg-stone-850 bg-slate-900";
+                document.getElementById('modal-header-icon').className = "fa-solid fa-vault text-emerald-400";
+                
+                currencySelect.value = 'TWD';
+                currencySelect.disabled = true; // Aifian 鎖定台幣計價
+                updateCurrencyDropdownOptions(['TWD']);
+
+                // 按要求：隱藏標的名稱、計價貨幣與常規股票/儲蓄計畫輸入欄，避免使用者困惑
+                nameInputContainer.classList.add('hidden');
+                currencyInputContainer.classList.add('hidden');
+                taiwanToggle.classList.add('hidden');
+                regularInvestmentArea.classList.add('hidden');
+                stockFieldsArea.classList.add('hidden');
+                savingsFieldsArea.classList.add('hidden');
+                
+                // 顯示專屬 Aifian 智慧欄位（最低額度 3000、數量、總成本即時自動加總）
+                aifianFieldsArea.classList.remove('hidden');
+            } else if (type === 'SAVINGS') {
+                // 保留儲蓄降級備用路徑
+                taiwanToggle.classList.add('hidden');
+                regularInvestmentArea.classList.remove('hidden');
+                stockFieldsArea.classList.add('hidden');
+                savingsFieldsArea.classList.remove('hidden');
+                document.getElementById('modal-label-savings-principal').innerText = "初始存款本金 (原幣)";
+                document.getElementById('modal-regular-budget-title').innerText = "定期定額新增存款";
+            }
+            
+            updateModalCurrencyLabels();
+            calculateModalTotalCost();
+        }
+
+        // 開氣 Modal 彈窗 (新增)
         function openModal() {
             document.getElementById('modal-title').innerText = "新增理財標的";
             document.getElementById('edit-asset-id').value = "";
             document.getElementById('modal-asset-name').value = "";
-            document.getElementById('modal-asset-type').value = "stock";
-            document.getElementById('modal-asset-currency').value = "TWD";
+            document.getElementById('modal-asset-type').value = "TAIWAN_STOCK";
+            document.getElementById('modal-taiwan-sub-type').value = "lot";
             
             document.getElementById('modal-stock-price').value = "";
-            document.getElementById('modal-stock-budget').value = "";
-            document.getElementById('modal-stock-init-shares').value = "0";
-            document.getElementById('modal-stock-init-cost').value = "0";
+            document.getElementById('modal-stock-budget').value = "0";
+            document.getElementById('modal-stock-init-shares').value = "";
+            document.getElementById('modal-stock-init-cost').value = "";
 
             document.getElementById('modal-savings-principal').value = "";
-            document.getElementById('modal-savings-budget').value = "0";
             document.getElementById('modal-savings-rate').value = "";
+            
+            // Aifian
+            document.getElementById('modal-aifian-shares').value = "";
+            document.getElementById('modal-aifian-total-cost').value = "";
 
             toggleModalFields();
-            updateModalCurrencyLabels();
             document.getElementById('assetModal').classList.remove('hidden');
         }
 
@@ -668,36 +1063,38 @@
 
             document.getElementById('modal-title').innerText = "編輯理財標的";
             document.getElementById('edit-asset-id').value = asset.id;
-            document.getElementById('modal-asset-name').value = asset.name;
             document.getElementById('modal-asset-type').value = asset.type;
             document.getElementById('modal-asset-currency').value = asset.currency;
+            document.getElementById('modal-asset-name').value = asset.name || "";
 
-            if (asset.type === 'stock') {
-                document.getElementById('modal-stock-price').value = asset.price;
-                document.getElementById('modal-stock-budget').value = asset.monthlyBudget;
-                document.getElementById('modal-stock-init-shares').value = asset.initialShares;
-                document.getElementById('modal-stock-init-cost').value = asset.initialCost;
-            } else {
+            if (asset.type === 'AIFIAN') {
+                document.getElementById('modal-aifian-shares').value = asset.initialShares || 0;
+                document.getElementById('modal-aifian-total-cost').value = (asset.initialShares || 0) * 3000;
+            } else if (asset.type === 'SAVINGS') {
                 document.getElementById('modal-savings-principal').value = asset.principal;
-                document.getElementById('modal-savings-budget').value = asset.monthlyBudget;
+                document.getElementById('modal-stock-budget').value = asset.monthlyBudget || 0;
                 document.getElementById('modal-savings-rate').value = asset.annualRate;
+            } else {
+                document.getElementById('modal-stock-price').value = asset.price;
+                document.getElementById('modal-stock-budget').value = asset.monthlyBudget || 0;
+                document.getElementById('modal-stock-init-cost').value = asset.initialCost;
+                
+                if (asset.type === 'TAIWAN_STOCK') {
+                    const subType = asset.subType || 'lot';
+                    document.getElementById('modal-taiwan-sub-type').value = subType;
+                    if (subType === 'lot') {
+                        // 介面端顯示「張數」
+                        document.getElementById('modal-stock-init-shares').value = asset.initialShares / 1000;
+                    } else {
+                        document.getElementById('modal-stock-init-shares').value = asset.initialShares;
+                    }
+                } else {
+                    document.getElementById('modal-stock-init-shares').value = asset.initialShares;
+                }
             }
 
             toggleModalFields();
-            updateModalCurrencyLabels();
             document.getElementById('assetModal').classList.remove('hidden');
-        }
-
-        // 切換顯示股票/儲蓄專屬欄位
-        function toggleModalFields() {
-            const type = document.getElementById('modal-asset-type').value;
-            if (type === 'stock') {
-                document.getElementById('modal-stock-fields').classList.remove('hidden');
-                document.getElementById('modal-savings-fields').classList.add('hidden');
-            } else {
-                document.getElementById('modal-stock-fields').classList.add('hidden');
-                document.getElementById('modal-savings-fields').classList.remove('hidden');
-            }
         }
 
         function closeModal() {
@@ -707,35 +1104,69 @@
         // 儲存資產
         function saveAsset() {
             const id = document.getElementById('edit-asset-id').value;
-            const name = document.getElementById('modal-asset-name').value.trim();
             const type = document.getElementById('modal-asset-type').value;
-            const currency = document.getElementById('modal-asset-currency').value;
+            let name = "";
+            let currency = "";
 
-            if (!name) {
-                alert('請輸入標的名稱！');
-                return;
+            if (type === 'AIFIAN') {
+                name = "Aifian 智能存款"; // 自動補足 Aifian 品項名稱
+                currency = "TWD"; // 鎖定台幣結算
+            } else {
+                name = document.getElementById('modal-asset-name').value.trim();
+                currency = document.getElementById('modal-asset-currency').value;
+                if (!name) {
+                    showToast('請輸入標的名稱！', 'error');
+                    return;
+                }
             }
 
             let newAsset = { id: id || Date.now().toString(), name, type, currency };
 
-            if (type === 'stock') {
-                newAsset.price = parseFloat(document.getElementById('modal-stock-price').value) || 0;
-                newAsset.monthlyBudget = parseFloat(document.getElementById('modal-stock-budget').value) || 0;
-                newAsset.initialShares = parseFloat(document.getElementById('modal-stock-init-shares').value) || 0;
-                newAsset.initialCost = parseFloat(document.getElementById('modal-stock-init-cost').value) || 0;
-            } else {
+            if (type === 'AIFIAN') {
+                newAsset.initialShares = parseFloat(document.getElementById('modal-aifian-shares').value) || 0;
+                newAsset.principal = newAsset.initialShares * 3000; // 最低額度 3000
+                newAsset.annualRate = 7; // 保守定率 7%
+                newAsset.monthlyBudget = 0; // Aifian 不額外計定期定額本金投入
+                newAsset.price = 3000;
+            } else if (type === 'SAVINGS') {
                 newAsset.principal = parseFloat(document.getElementById('modal-savings-principal').value) || 0;
-                newAsset.monthlyBudget = parseFloat(document.getElementById('modal-savings-budget').value) || 0;
+                newAsset.monthlyBudget = parseFloat(document.getElementById('modal-stock-budget').value) || 0;
                 newAsset.annualRate = parseFloat(document.getElementById('modal-savings-rate').value) || 0;
+            } else {
+                newAsset.price = parseFloat(document.getElementById('modal-stock-price').value) || 0;
+                newAsset.initialCost = parseFloat(document.getElementById('modal-stock-init-cost').value) || 0;
+                
+                // 定期定額設定：只有台股有
+                if (type === 'TAIWAN_STOCK') {
+                    newAsset.monthlyBudget = parseFloat(document.getElementById('modal-stock-budget').value) || 0;
+                } else {
+                    newAsset.monthlyBudget = 0; // 美股與虛擬貨幣自動歸零
+                }
+
+                const inputShares = parseFloat(document.getElementById('modal-stock-init-shares').value) || 0;
+                if (type === 'TAIWAN_STOCK') {
+                    const subType = document.getElementById('modal-taiwan-sub-type').value;
+                    newAsset.subType = subType;
+                    if (subType === 'lot') {
+                        // 如果是整張，儲存時自動轉換為股數：1張 = 1000股
+                        newAsset.initialShares = inputShares * 1000;
+                    } else {
+                        newAsset.initialShares = inputShares;
+                    }
+                } else {
+                    newAsset.initialShares = inputShares;
+                }
             }
 
             if (id) {
-                // 編輯
+                // 編輯模式
                 const index = assets.findIndex(a => a.id === id);
                 if (index !== -1) assets[index] = newAsset;
+                showToast('標的變更已成功存檔');
             } else {
-                // 新增
+                // 新增模式
                 assets.push(newAsset);
+                showToast('成功新增一筆理財標的');
             }
 
             saveAssetsToStorage();
@@ -745,10 +1176,11 @@
 
         // 刪除資產
         function deleteAsset(id) {
-            if (confirm('確定要移除此理財標的嗎？這將不會影響您的歷史存檔紀錄。')) {
+            if (confirm('確定要移除此理財標的嗎？這將不會影響您的歷史對帳紀錄。')) {
                 assets = assets.filter(a => a.id !== id);
                 saveAssetsToStorage();
                 calculateAndRefresh();
+                showToast('已移除標的', 'error');
             }
         }
 
@@ -758,11 +1190,17 @@
                 assets = JSON.parse(JSON.stringify(DEFAULT_ASSETS));
                 saveAssetsToStorage();
                 calculateAndRefresh();
+                showToast('已恢復預設配置');
             }
         }
 
         // 月底結算自動儲存
-        function triggerMonthEndSettlement() {
+        async function triggerMonthEndSettlement() {
+            // 月底結算存檔前，系統自動偵測並同步最新網路上幣值報價
+            showToast('月底結算中！正在自動抓取幣托最新價格...', 'success');
+            await fetchRealtimeRates(); // 異步等待完成
+            calculateAndRefresh(); // 重置更新右側所有數據與 10 年看板
+            
             const d = new Date();
             const timeStr = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
             const totalVal = document.getElementById('display-total-value').innerText;
@@ -778,13 +1216,7 @@
             localStorage.setItem('asset_history_log', JSON.stringify(history));
             
             renderHistoryLog();
-
-            // 彈出成功儲存通知
-            const toast = document.createElement('div');
-            toast.className = "fixed top-20 left-1/2 -translate-x-1/2 bg-emerald-600 text-white font-bold px-6 py-3 rounded-2xl shadow-xl z-50 animate-bounce text-sm flex items-center space-x-2";
-            toast.innerHTML = `<i class="fa-solid fa-circle-check text-base"></i> <span>已存入本地歷史對帳紀錄！</span>`;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 2500);
+            showToast('已成功同步匯率，並將當下快照存入對帳紀錄！');
         }
 
         function renderHistoryLog() {
@@ -815,6 +1247,7 @@
             if (confirm('確定清除歷史對帳紀錄庫嗎？此操作不可逆。')) {
                 localStorage.removeItem('asset_history_log');
                 renderHistoryLog();
+                showToast('歷史紀錄已完全清除', 'error');
             }
         }
     </script>
