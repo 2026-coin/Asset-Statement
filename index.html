@@ -10,12 +10,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap');
         
         body {
             font-family: 'Noto Sans TC', sans-serif;
             background-color: #fbf9f5;
             color: #3a3f47;
+        }
+
+        .font-mono {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
         }
 
         .chart-container {
@@ -34,8 +38,7 @@
             box-shadow: 0 4px 12px rgba(62, 78, 89, 0.2);
         }
 
-        .input-focus:focus {
-            outline: none;
+        .input-focus-container:focus-within {
             border-color: #3e4e59;
             box-shadow: 0 0 0 3px rgba(62, 78, 89, 0.15);
         }
@@ -52,7 +55,7 @@
                 </div>
                 <div>
                     <span class="font-extrabold text-base md:text-lg text-stone-800">AssetFlow Pro</span>
-                    <span class="text-[10px] text-stone-400 block -mt-1 font-mono">Dynamic Portfolio Manager</span>
+                    <span class="text-[10px] text-stone-400 block -mt-1 font-mono tracking-wider">Dynamic Portfolio Manager</span>
                 </div>
             </div>
             
@@ -77,17 +80,41 @@
         <!-- 左欄：匯率設定、資產清單與管理 -->
         <div class="lg:col-span-1 space-y-6">
             
-            <!-- 全域設定（如美股匯率） -->
+            <!-- 全域設定（匯率面板） -->
             <div class="bg-white p-5 rounded-2xl border border-stone-200/80 card-shadow space-y-4">
-                <h3 class="text-sm font-bold text-stone-800 flex items-center">
+                <h3 class="text-sm font-bold text-stone-800 flex items-center pb-2 border-b border-stone-100">
                     <i class="fa-solid fa-earth-asia mr-2 text-stone-500"></i>匯率與環境設定
                 </h3>
-                <div>
-                    <label class="block text-xs font-semibold text-stone-500 mb-1">美金換台幣匯率 (USD/TWD)</label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-stone-400 text-xs font-bold">1 USD =</span>
-                        <input type="number" id="input-usd-rate" value="32.5" step="0.1" class="w-full bg-stone-50 border border-stone-200 rounded-xl pl-20 pr-12 py-2.5 text-sm text-stone-800 font-bold input-focus transition-all" oninput="calculateAndRefresh()">
-                        <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-stone-400 text-xs font-bold">TWD</span>
+                
+                <div class="space-y-4">
+                    <!-- 美金匯率 -->
+                    <div>
+                        <label class="block text-xs font-semibold text-stone-500 mb-1.5">美金換台幣 (USD/TWD)</label>
+                        <div class="flex rounded-xl border border-stone-200 overflow-hidden bg-stone-50/50 input-focus-container transition-all">
+                            <span class="bg-stone-100 text-stone-500 px-3.5 flex items-center text-xs font-bold border-r border-stone-200/80 select-none shrink-0 font-mono">1 USD =</span>
+                            <input type="number" id="input-usd-rate" value="32.5" step="0.1" class="w-full bg-transparent px-3 py-2.5 text-sm text-stone-800 font-extrabold focus:outline-none font-mono" oninput="calculateAndRefresh()">
+                            <span class="bg-stone-50 text-stone-400 px-3 flex items-center text-[10px] font-bold font-mono shrink-0 select-none border-l border-stone-200/80">TWD</span>
+                        </div>
+                    </div>
+
+                    <!-- USDT 匯率 -->
+                    <div>
+                        <label class="block text-xs font-semibold text-stone-500 mb-1.5">泰達幣換台幣 (USDT/TWD)</label>
+                        <div class="flex rounded-xl border border-stone-200 overflow-hidden bg-stone-50/50 input-focus-container transition-all">
+                            <span class="bg-stone-100 text-stone-500 px-3.5 flex items-center text-xs font-bold border-r border-stone-200/80 select-none shrink-0 font-mono">1 USDT =</span>
+                            <input type="number" id="input-usdt-rate" value="32.6" step="0.1" class="w-full bg-transparent px-3 py-2.5 text-sm text-stone-800 font-extrabold focus:outline-none font-mono" oninput="calculateAndRefresh()">
+                            <span class="bg-stone-50 text-stone-400 px-3 flex items-center text-[10px] font-bold font-mono shrink-0 select-none border-l border-stone-200/80">TWD</span>
+                        </div>
+                    </div>
+
+                    <!-- BTC 匯率 -->
+                    <div>
+                        <label class="block text-xs font-semibold text-stone-500 mb-1.5">比特幣換台幣 (BTC/TWD)</label>
+                        <div class="flex rounded-xl border border-stone-200 overflow-hidden bg-stone-50/50 input-focus-container transition-all">
+                            <span class="bg-stone-100 text-stone-500 px-3.5 flex items-center text-xs font-bold border-r border-stone-200/80 select-none shrink-0 font-mono">1 BTC =</span>
+                            <input type="number" id="input-btc-rate" value="2150000" step="1000" class="w-full bg-transparent px-3 py-2.5 text-sm text-stone-800 font-extrabold focus:outline-none font-mono" oninput="calculateAndRefresh()">
+                            <span class="bg-stone-50 text-stone-400 px-3 flex items-center text-[10px] font-bold font-mono shrink-0 select-none border-l border-stone-200/80">TWD</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -115,11 +142,11 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="bg-white p-5 rounded-2xl border border-stone-200/80 card-shadow">
                     <span class="text-xs font-bold text-stone-400 block">10 年預估最終累積總資產 (折合台幣)</span>
-                    <div class="text-2xl md:text-3xl font-black text-stone-800 mt-1" id="display-total-value">NT$ 0</div>
+                    <div class="text-2xl md:text-3xl font-black text-stone-850 mt-1 font-mono tracking-tight" id="display-total-value">NT$ 0</div>
                 </div>
                 <div class="bg-white p-5 rounded-2xl border border-stone-200/80 card-shadow">
                     <span class="text-xs font-bold text-stone-400 block">10 年預估合併投資報酬率 (ROI)</span>
-                    <div class="text-2xl md:text-3xl font-black text-emerald-600 mt-1" id="display-roi">0.0%</div>
+                    <div class="text-2xl md:text-3xl font-black text-emerald-600 mt-1 font-mono tracking-tight" id="display-roi">0.0%</div>
                 </div>
             </div>
 
@@ -184,7 +211,7 @@
                                 <th class="p-3 text-right">預估 10 年資產 (TWD)</th>
                             </tr>
                         </thead>
-                        <tbody id="history-log-body" class="text-stone-600 divide-y divide-stone-100">
+                        <tbody id="history-log-body" class="text-stone-600 divide-y divide-stone-100 font-mono">
                             <!-- 歷史紀錄 -->
                         </tbody>
                     </table>
@@ -210,22 +237,24 @@
                 
                 <div>
                     <label class="block text-xs font-bold text-stone-500 mb-1">標的名稱 / 代號</label>
-                    <input type="text" id="modal-asset-name" placeholder="例如: TSLA, 0056, 某某活存" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm font-bold input-focus transition-all">
+                    <input type="text" id="modal-asset-name" placeholder="例如: TSLA, 0056, BTC-餘額" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm font-bold input-focus transition-all">
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-stone-500 mb-1">標的類型</label>
                         <select id="modal-asset-type" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5 text-sm font-bold input-focus transition-all" onchange="toggleModalFields()">
-                            <option value="stock">股票 (台/美股)</option>
-                            <option value="savings">儲蓄 / Aifian (生息)</option>
+                            <option value="stock">股票 (台/美股/加密幣單價)</option>
+                            <option value="savings">儲蓄 / Aifian (定存生息)</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-stone-500 mb-1">計價貨幣</label>
-                        <select id="modal-asset-currency" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5 text-sm font-bold input-focus transition-all">
+                        <select id="modal-asset-currency" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5 text-sm font-bold input-focus transition-all" onchange="updateModalCurrencyLabels()">
                             <option value="TWD">新台幣 (TWD)</option>
                             <option value="USD">美金 (USD)</option>
+                            <option value="USDT">泰達幣 (USDT)</option>
+                            <option value="BTC">比特幣 (BTC)</option>
                         </select>
                     </div>
                 </div>
@@ -234,22 +263,31 @@
                 <div id="modal-stock-fields" class="space-y-3">
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-bold text-stone-500 mb-1">目前市場單價</label>
-                            <input type="number" id="modal-stock-price" step="0.01" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5 text-sm font-bold input-focus transition-all">
+                            <label class="block text-xs font-bold text-stone-500 mb-1" id="modal-label-price">目前市場單價</label>
+                            <div class="flex rounded-xl border border-stone-200 overflow-hidden bg-stone-50/50 input-focus-container transition-all">
+                                <span class="bg-stone-100 text-stone-500 px-3 flex items-center text-[10px] font-bold border-r border-stone-200/80 select-none shrink-0 font-mono" id="modal-price-addon">TWD</span>
+                                <input type="number" id="modal-stock-price" step="0.000001" class="w-full bg-transparent px-3 py-2.5 text-sm text-stone-800 font-extrabold focus:outline-none font-mono">
+                            </div>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-stone-500 mb-1">每月定期投入金額</label>
-                            <input type="number" id="modal-stock-budget" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5 text-sm font-bold input-focus transition-all">
+                            <div class="flex rounded-xl border border-stone-200 overflow-hidden bg-stone-50/50 input-focus-container transition-all">
+                                <span class="bg-stone-100 text-stone-500 px-3 flex items-center text-[10px] font-bold border-r border-stone-200/80 select-none shrink-0 font-mono" id="modal-budget-addon">TWD</span>
+                                <input type="number" id="modal-stock-budget" class="w-full bg-transparent px-3 py-2.5 text-sm text-stone-800 font-extrabold focus:outline-none font-mono">
+                            </div>
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-bold text-stone-500 mb-1">初始持股數量 (股)</label>
-                            <input type="number" id="modal-stock-init-shares" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5 text-sm font-bold input-focus transition-all">
+                            <label class="block text-xs font-bold text-stone-500 mb-1">初始持股數量 (股/個)</label>
+                            <input type="number" id="modal-stock-init-shares" step="0.000001" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm font-bold input-focus transition-all font-mono">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-stone-500 mb-1">初始買進成本 (折台幣/美金)</label>
-                            <input type="number" id="modal-stock-init-cost" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5 text-sm font-bold input-focus transition-all">
+                            <label class="block text-xs font-bold text-stone-500 mb-1">初始買進成本 (折合原幣)</label>
+                            <div class="flex rounded-xl border border-stone-200 overflow-hidden bg-stone-50/50 input-focus-container transition-all">
+                                <span class="bg-stone-100 text-stone-500 px-3 flex items-center text-[10px] font-bold border-r border-stone-200/80 select-none shrink-0 font-mono" id="modal-init-cost-addon">TWD</span>
+                                <input type="number" id="modal-stock-init-cost" class="w-full bg-transparent px-3 py-2.5 text-sm text-stone-800 font-extrabold focus:outline-none font-mono">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -259,16 +297,25 @@
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-bold text-stone-500 mb-1">初始本金</label>
-                            <input type="number" id="modal-savings-principal" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5 text-sm font-bold input-focus transition-all">
+                            <div class="flex rounded-xl border border-stone-200 overflow-hidden bg-stone-50/50 input-focus-container transition-all">
+                                <span class="bg-stone-100 text-stone-500 px-3 flex items-center text-[10px] font-bold border-r border-stone-200/80 select-none shrink-0 font-mono" id="modal-savings-principal-addon">TWD</span>
+                                <input type="number" id="modal-savings-principal" step="0.000001" class="w-full bg-transparent px-3 py-2.5 text-sm text-stone-800 font-extrabold focus:outline-none font-mono">
+                            </div>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-stone-500 mb-1">每月定期新增存款</label>
-                            <input type="number" id="modal-savings-budget" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5 text-sm font-bold input-focus transition-all">
+                            <div class="flex rounded-xl border border-stone-200 overflow-hidden bg-stone-50/50 input-focus-container transition-all">
+                                <span class="bg-stone-100 text-stone-500 px-3 flex items-center text-[10px] font-bold border-r border-stone-200/80 select-none shrink-0 font-mono" id="modal-savings-budget-addon">TWD</span>
+                                <input type="number" id="modal-savings-budget" class="w-full bg-transparent px-3 py-2.5 text-sm text-stone-800 font-extrabold focus:outline-none font-mono">
+                            </div>
                         </div>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-stone-500 mb-1">預估保守年收益率 (%)</label>
-                        <input type="number" id="modal-savings-rate" step="0.1" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm font-bold input-focus transition-all">
+                        <div class="flex rounded-xl border border-stone-200 overflow-hidden bg-stone-50/50 input-focus-container transition-all">
+                            <input type="number" id="modal-savings-rate" step="0.1" class="w-full bg-transparent px-3.5 py-2.5 text-sm text-stone-800 font-extrabold focus:outline-none font-mono">
+                            <span class="bg-stone-100 text-stone-500 px-3 flex items-center text-xs font-bold border-l border-stone-200/80 select-none shrink-0 font-mono">%</span>
+                        </div>
                     </div>
                 </div>
 
@@ -302,6 +349,7 @@
             initCharts();
             calculateAndRefresh();
             renderHistoryLog();
+            setupEventListeners();
         };
 
         // 從 LocalStorage 載入資產，若無則載入預設
@@ -380,9 +428,30 @@
             calculateAndRefresh();
         }
 
+        // 監聽所有環境匯率輸入，即時刷新
+        function setupEventListeners() {
+            ['input-usd-rate', 'input-usdt-rate', 'input-btc-rate'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('input', calculateAndRefresh);
+                }
+            });
+        }
+
+        // 取得當前特定貨幣的台幣折算率
+        function getCurrencyRate(currency) {
+            const usdToTwd = parseFloat(document.getElementById('input-usd-rate').value) || 32.5;
+            const usdtToTwd = parseFloat(document.getElementById('input-usdt-rate').value) || 32.6;
+            const btcToTwd = parseFloat(document.getElementById('input-btc-rate').value) || 2150000;
+
+            if (currency === 'USD') return usdToTwd;
+            if (currency === 'USDT') return usdtToTwd;
+            if (currency === 'BTC') return btcToTwd;
+            return 1; // TWD
+        }
+
         // 理財複利精準核心計算
         function calculateAndRefresh() {
-            const usdToTwd = parseFloat(document.getElementById('input-usd-rate').value) || 32.5;
             const months = currentYear * 12;
 
             let totalValTwd = 0;
@@ -398,7 +467,7 @@
             managerListContainer.innerHTML = '';
 
             assets.forEach(asset => {
-                const rate = asset.currency === 'USD' ? usdToTwd : 1;
+                const rate = getCurrencyRate(asset.currency);
                 let val = 0;
                 let invested = 0;
                 let detailStr = "";
@@ -411,7 +480,7 @@
                     const accumulatedShares = asset.initialShares + (priceTwd > 0 ? (budgetTwd / priceTwd) * months : 0);
                     val = accumulatedShares * priceTwd;
                     invested = initCostTwd + (budgetTwd * months);
-                    detailStr = `累積: ${(accumulatedShares / 1000).toFixed(2)} 張 (${Math.round(accumulatedShares).toLocaleString()} 股)`;
+                    detailStr = `累積: ${(accumulatedShares / 1000).toFixed(4)} 張 (${accumulatedShares.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 6})} 股)`;
                 } else if (asset.type === 'savings') {
                     const principalTwd = asset.principal * rate;
                     const budgetTwd = asset.monthlyBudget * rate;
@@ -429,7 +498,10 @@
 
                     val = fvPrincipal + fvAnnuity;
                     invested = principalTwd + (budgetTwd * months);
-                    detailStr = `年收益率: ${asset.annualRate}% (+NT$ ${Math.round(val - invested).toLocaleString()})`;
+                    
+                    // 儲蓄型公式拆解：本金 + 年收益利息 = 黑色總金額 (皆已折合台幣)
+                    const totalInterest = val - invested;
+                    detailStr = `本金 NT$ ${Math.round(invested).toLocaleString()} + 利息 NT$ ${Math.round(totalInterest).toLocaleString()} = NT$ ${Math.round(val).toLocaleString()}`;
                 }
 
                 totalValTwd += val;
@@ -439,23 +511,46 @@
                 chartData.push(Math.round(val));
 
                 // 產生右側詳細卡片
-                const currencySymbol = asset.currency === 'USD' ? 'USD ' : 'NT$ ';
-                const displayPrice = asset.type === 'stock' ? `${currencySymbol}${asset.price}` : `年化 ${asset.annualRate}%`;
+                let currencySymbol = 'NT$ ';
+                if (asset.currency === 'USD') currencySymbol = 'USD ';
+                if (asset.currency === 'USDT') currencySymbol = 'USDT ';
+                if (asset.currency === 'BTC') currencySymbol = 'BTC ';
+
+                const displayPrice = asset.type === 'stock' ? `${currencySymbol}${asset.price.toLocaleString(undefined, {maximumFractionDigits: 6})}` : `年化 ${asset.annualRate}%`;
                 
                 const card = document.createElement('div');
-                card.className = "bg-stone-50 p-3.5 rounded-xl border border-stone-100 flex flex-col justify-between";
+                card.className = "bg-white p-4 rounded-2xl border border-stone-200/60 card-shadow flex flex-col justify-between";
+                
+                let bottomHTML = "";
+                if (asset.type === 'stock') {
+                    bottomHTML = `
+                        <div class="flex justify-between items-center mt-3 text-[10px] text-stone-500 font-mono">
+                            <span class="truncate pr-1">${detailStr}</span>
+                            <span class="text-stone-400 shrink-0">現價: ${displayPrice}</span>
+                        </div>
+                    `;
+                } else {
+                    bottomHTML = `
+                        <div class="mt-3 text-[10px] text-stone-500 space-y-1">
+                            <div class="flex justify-between items-center font-mono text-stone-400">
+                                <span>標的設定: ${displayPrice}</span>
+                            </div>
+                            <div class="text-[10px] font-semibold text-stone-500 bg-stone-100 p-2 rounded-xl mt-1 border border-stone-200/30 leading-relaxed font-mono">
+                                ${detailStr}
+                            </div>
+                        </div>
+                    `;
+                }
+
                 card.innerHTML = `
                     <div>
                         <div class="flex justify-between items-start">
-                            <span class="text-[10px] font-bold text-stone-400 block">${asset.name}</span>
-                            <span class="text-[9px] bg-stone-200/60 px-1.5 py-0.5 rounded font-bold">${asset.currency}</span>
+                            <span class="text-[10px] font-bold text-stone-400 block truncate pr-2" title="${asset.name}">${asset.name}</span>
+                            <span class="text-[9px] bg-stone-100 px-1.5 py-0.5 rounded font-extrabold text-stone-500 font-mono shrink-0">${asset.currency}</span>
                         </div>
-                        <span class="text-base font-black text-stone-700 mt-1 block">NT$ ${Math.round(val).toLocaleString()}</span>
+                        <span class="text-base font-black text-stone-750 mt-1 block font-mono">NT$ ${Math.round(val).toLocaleString()}</span>
                     </div>
-                    <div class="flex justify-between items-center mt-3 text-[10px] text-stone-500">
-                        <span>${detailStr}</span>
-                        <span class="font-mono text-stone-400">現價: ${displayPrice}</span>
-                    </div>
+                    ${bottomHTML}
                 `;
                 detailCardsContainer.appendChild(card);
 
@@ -463,13 +558,14 @@
                 const item = document.createElement('div');
                 item.className = "bg-stone-50/70 p-3 rounded-xl border border-stone-100 flex justify-between items-center";
                 
-                const monthlyTxt = asset.type === 'stock' ? `每月投 $${asset.monthlyBudget}` : `每月存 $${asset.monthlyBudget}`;
+                const currencyUnit = asset.currency;
+                const monthlyTxt = asset.type === 'stock' ? `每月投 ${currencyUnit} ${asset.monthlyBudget.toLocaleString()}` : `每月存 ${currencyUnit} ${asset.monthlyBudget.toLocaleString()}`;
                 item.innerHTML = `
-                    <div>
-                        <p class="text-xs font-bold text-stone-800">${asset.name}</p>
-                        <p class="text-[10px] text-stone-400">${asset.currency} | ${monthlyTxt} ${asset.currency}</p>
+                    <div class="truncate pr-2">
+                        <p class="text-xs font-bold text-stone-800 truncate" title="${asset.name}">${asset.name}</p>
+                        <p class="text-[10px] text-stone-400 font-mono">${monthlyTxt}</p>
                     </div>
-                    <div class="flex space-x-1">
+                    <div class="flex space-x-1 shrink-0">
                         <button onclick="editAsset('${asset.id}')" class="text-stone-500 hover:text-stone-800 p-1.5 text-xs cursor-pointer"><i class="fa-regular fa-pen-to-square"></i></button>
                         <button onclick="deleteAsset('${asset.id}')" class="text-rose-500 hover:text-rose-700 p-1.5 text-xs cursor-pointer"><i class="fa-regular fa-trash-can"></i></button>
                     </div>
@@ -488,7 +584,7 @@
             let tenYearValTwd = 0;
             let tenYearInvestTwd = 0;
             assets.forEach(asset => {
-                const rate = asset.currency === 'USD' ? usdToTwd : 1;
+                const rate = getCurrencyRate(asset.currency);
                 if (asset.type === 'stock') {
                     const priceTwd = asset.price * rate;
                     const budgetTwd = asset.monthlyBudget * rate;
@@ -527,6 +623,22 @@
             growthChart.update();
         }
 
+        // 當計價貨幣下拉選單變動時，自動、即時更新所有欄位的前綴字，徹底避免重疊跑版
+        function updateModalCurrencyLabels() {
+            const currency = document.getElementById('modal-asset-currency').value;
+            const priceAddon = document.getElementById('modal-price-addon');
+            const budgetAddon = document.getElementById('modal-budget-addon');
+            const initCostAddon = document.getElementById('modal-init-cost-addon');
+            const savingsPrincipalAddon = document.getElementById('modal-savings-principal-addon');
+            const savingsBudgetAddon = document.getElementById('modal-savings-budget-addon');
+            
+            if (priceAddon) priceAddon.innerText = currency;
+            if (budgetAddon) budgetAddon.innerText = currency;
+            if (initCostAddon) initCostAddon.innerText = currency;
+            if (savingsPrincipalAddon) savingsPrincipalAddon.innerText = currency;
+            if (savingsBudgetAddon) savingsBudgetAddon.innerText = currency;
+        }
+
         // 開啟 Modal 彈窗 (新增)
         function openModal() {
             document.getElementById('modal-title').innerText = "新增理財標的";
@@ -545,6 +657,7 @@
             document.getElementById('modal-savings-rate').value = "";
 
             toggleModalFields();
+            updateModalCurrencyLabels();
             document.getElementById('assetModal').classList.remove('hidden');
         }
 
@@ -571,6 +684,7 @@
             }
 
             toggleModalFields();
+            updateModalCurrencyLabels();
             document.getElementById('assetModal').classList.remove('hidden');
         }
 
@@ -690,8 +804,8 @@
                 tr.className = "hover:bg-stone-100/40 transition-colors border-b border-stone-100";
                 tr.innerHTML = `
                     <td class="p-3 text-stone-400 font-mono">${item.timestamp}</td>
-                    <td class="p-3 text-right font-bold text-stone-700">${item.assetCount} 個標的</td>
-                    <td class="p-3 text-right font-black text-stone-800">${item.totalVal}</td>
+                    <td class="p-3 text-right font-bold text-stone-700 font-mono">${item.assetCount}</td>
+                    <td class="p-3 text-right font-black text-stone-850 font-mono">${item.totalVal}</td>
                 `;
                 tbody.appendChild(tr);
             });
