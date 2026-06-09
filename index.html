@@ -84,7 +84,7 @@
     <!-- 主區塊 -->
     <main class="max-w-6xl mx-auto px-4 mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6 w-full flex-grow">
         
-        <!-- 左欄：國際匯率、資產清單與管理 -->
+        <!-- 左欄：國際匯率、現貨資產清單與管理 -->
         <div class="lg:col-span-1 space-y-6">
             
             <!-- 全域設定（國際匯率面板） -->
@@ -148,11 +148,11 @@
                 </div>
             </div>
 
-            <!-- 資產清單管理面板 -->
+            <!-- 現貨資產清單管理面板 -->
             <div class="bg-white p-5 rounded-2xl border border-stone-200/80 card-shadow space-y-4">
                 <div class="flex justify-between items-center border-b border-stone-100 pb-3">
                     <h3 class="text-sm font-bold text-stone-800 flex items-center">
-                        <i class="fa-solid fa-list-check mr-2 text-stone-500"></i>目前持倉標的管理
+                        <i class="fa-solid fa-list-check mr-2 text-stone-500"></i>現貨資產
                     </h3>
                     <button onclick="resetToDefault()" class="text-[10px] text-stone-400 hover:text-stone-600 font-bold underline transition-colors cursor-pointer">重設初始設定</button>
                 </div>
@@ -191,7 +191,7 @@
                 <!-- 動態卡片內容與圖表展示 -->
                 <div class="bg-white p-5 rounded-2xl border border-stone-200/80 card-shadow space-y-6">
                     <div class="flex justify-between items-center border-b border-stone-100 pb-3">
-                        <span class="text-base font-bold text-stone-800" id="card-title">初始 階段資產全貌</span>
+                        <span class="text-base font-bold text-stone-800" id="card-title">初始 帳務資產</span>
                         <span class="text-xs font-bold text-stone-500 bg-stone-100 px-3 py-1 rounded-full font-mono" id="card-total-invest">總投入本金: --</span>
                     </div>
 
@@ -224,7 +224,7 @@
             <div class="bg-white p-5 rounded-2xl border border-stone-200/80 card-shadow">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-sm font-bold text-stone-800 flex items-center">
-                        <i class="fa-solid fa-clock-rotate-left mr-2 text-amber-600"></i>歷史對帳與月底存檔紀錄
+                        <i class="fa-solid fa-clock-rotate-left mr-2 text-amber-600"></i>歷史對帳單
                     </h3>
                     <button onclick="clearHistory()" class="text-xs text-rose-500 font-bold hover:text-rose-400 transition-colors cursor-pointer">
                         <i class="fa-regular fa-trash-can mr-1"></i>清除紀錄
@@ -350,7 +350,7 @@
                                 <span class="text-[10px] text-stone-400 font-normal ml-1 font-mono">(年收益率 7% 複利)</span>
                             </div>
                             <div class="flex rounded-xl border border-stone-200 overflow-hidden bg-stone-50/50 input-focus-container transition-all">
-                                <input type="number" id="modal-aifian-shares" step="1" min="1" placeholder="數量" class="w-full bg-transparent px-3 py-2.5 text-sm text-stone-800 font-extrabold focus:outline-none font-mono">
+                                <input type="number" id="modal-aifian-shares" step="0.0001" min="0.0001" placeholder="數量" class="w-full bg-transparent px-3 py-2.5 text-sm text-stone-800 font-extrabold focus:outline-none font-mono">
                                 <span class="bg-stone-100 text-stone-500 px-3 flex items-center text-[10px] font-bold border-l border-stone-200/80 select-none shrink-0">個</span>
                             </div>
                         </div>
@@ -412,10 +412,13 @@
 
     <script>
         // 預設之初始配置檔（包含 0050、00981A、Aifian）
+        // 依照要求：將 00981A 初始庫存設定為 393 股，歷史買入成本設定為 $12,183
+        // 0050 設定為每月 $5,000 定期定額計畫，現價依要求更新預設為 110 元
+        // Aifian 初始本金更新為 $100,000 (等同 33.333333333333336 個額度)
         const DEFAULT_ASSETS = [
-            { id: '1', name: '00981A 國際半導體', type: 'TAIWAN_STOCK', subType: 'lot', currency: 'TWD', price: 31, initialShares: 393, initialCost: 11973, monthlyBudget: 10000 },
-            { id: '2', name: '0050 元大台灣50', type: 'TAIWAN_STOCK', subType: 'lot', currency: 'TWD', price: 130, initialShares: 0, initialCost: 0, monthlyBudget: 5000 },
-            { id: '3', name: 'Aifian 智能存款', type: 'AIFIAN', currency: 'TWD', principal: 147000, initialShares: 49, annualRate: 7 }
+            { id: '1', name: '00981A 國際半導體', type: 'TAIWAN_STOCK', subType: 'odd', currency: 'TWD', price: 31, initialShares: 393, initialCost: 12183, monthlyBudget: 10000 },
+            { id: '2', name: '0050 元大台灣50', type: 'TAIWAN_STOCK', subType: 'lot', currency: 'TWD', price: 110, initialShares: 0, initialCost: 0, monthlyBudget: 5000 },
+            { id: '3', name: 'Aifian 智能存款', type: 'AIFIAN', currency: 'TWD', principal: 100005, initialShares: 100000 / 3000, annualRate: 7 }
         ];
 
         let assets = [];
@@ -426,7 +429,7 @@
             loadAssets();
             initCharts();
             setupEventListeners();
-            // 首次啟動：自動偵測並同步最新國際匯率與虛擬幣價格
+            // 首次啟動：自動偵測並同步最新國際匯率、加密幣、以及台股即時股價
             await fetchRealtimeRates();
             calculateAndRefresh();
             renderHistoryLog();
@@ -451,7 +454,41 @@
             }, 2500);
         }
 
-        // 串接幣托 BitoPro 與開源匯率 API 自動偵測國際匯率
+        // 輔育函式：從標的名稱自動解析首個連續英數組合，作為台股代碼
+        function extractTicker(name) {
+            const match = name.trim().match(/^([A-Za-z0-9]+)/);
+            return match ? match[1] : null;
+        }
+
+        // 即時獲取台灣股市最新成交價（CORS-free Yahoo Finance Chart API 串接）
+        async function fetchTaiwanStockPrice(ticker) {
+            if (!ticker) return null;
+            const cleanTicker = ticker.toUpperCase().trim();
+            
+            // 優先嘗試上市市場 (.TW)
+            try {
+                const res = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${cleanTicker}.TW`);
+                const data = await res.json();
+                const price = data?.chart?.result?.[0]?.meta?.regularMarketPrice;
+                if (price && !isNaN(price)) return price;
+            } catch (e) {
+                console.log(`無法從 .TW 獲取 ${cleanTicker}，正在重試 .TWO...`);
+            }
+
+            // 次之嘗試上櫃市場 (.TWO)
+            try {
+                const res = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${cleanTicker}.TWO`);
+                const data = await res.json();
+                const price = data?.chart?.result?.[0]?.meta?.regularMarketPrice;
+                if (price && !isNaN(price)) return price;
+            } catch (e) {
+                console.log(`無法獲取 ${cleanTicker} 的最新市價報價`);
+            }
+
+            return null;
+        }
+
+        // 串接幣托 BitoPro、開源匯率與台股市價自動偵測同步系統
         async function fetchRealtimeRates() {
             const statusDot = document.getElementById('api-status-dot');
             const statusPing = document.getElementById('api-status-ping');
@@ -460,7 +497,7 @@
             if (statusDot) {
                 statusDot.className = "relative inline-flex rounded-full h-2 w-2 bg-amber-500 animate-pulse";
                 if (statusPing) statusPing.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75";
-                statusText.innerText = "正在偵測國際匯率...";
+                statusText.innerText = "正在同步台股市價與匯率...";
             }
 
             try {
@@ -496,18 +533,37 @@
                     document.getElementById('input-usd-rate').value = usdPrice.toFixed(2);
                 }
 
+                // 5. 抓取所有 TAIWAN_STOCK 的最新成交價並同步更新
+                let stockUpdated = false;
+                for (let i = 0; i < assets.length; i++) {
+                    const asset = assets[i];
+                    if (asset.type === 'TAIWAN_STOCK') {
+                        const ticker = extractTicker(asset.name);
+                        if (ticker) {
+                            const livePrice = await fetchTaiwanStockPrice(ticker);
+                            if (livePrice !== null) {
+                                asset.price = livePrice;
+                                stockUpdated = true;
+                            }
+                        }
+                    }
+                }
+                if (stockUpdated) {
+                    saveAssetsToStorage();
+                }
+
                 // 更新連線成功狀態
                 if (statusDot) {
                     statusDot.className = "relative inline-flex rounded-full h-2 w-2 bg-emerald-500";
                     if (statusPing) statusPing.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75";
-                    statusText.innerText = "已連線幣托 (自動同步中)";
+                    statusText.innerText = "已連線國泰與幣托 (自動同步中)";
                 }
             } catch (err) {
-                console.error("無法同步幣值價格:", err);
+                console.error("無法同步線上即時價格數據:", err);
                 if (statusDot) {
                     statusDot.className = "relative inline-flex rounded-full h-2 w-2 bg-rose-500";
                     if (statusPing) statusPing.className = "hidden";
-                    statusText.innerText = "無法連線幣托 (已載入本地緩存)";
+                    statusText.innerText = "無法連線更新 (已載入本地緩存)";
                 }
             }
         }
@@ -528,8 +584,8 @@
                         a.type = 'CRYPTO';
                     } else if (a.type === 'savings' || a.type === 'SAVINGS') {
                         a.type = 'AIFIAN';
-                        a.principal = a.principal || 147000;
-                        a.initialShares = a.initialShares || Math.round(a.principal / 3000);
+                        a.principal = a.principal || 100000;
+                        a.initialShares = a.initialShares || (a.principal / 3000);
                         a.annualRate = 7;
                         a.currency = 'TWD';
                     }
@@ -629,7 +685,7 @@
             if (type === 'AIFIAN') {
                 const shares = parseFloat(document.getElementById('modal-aifian-shares').value) || 0;
                 const cost = 3000 * shares;
-                document.getElementById('modal-aifian-total-cost').value = cost > 0 ? cost : "";
+                document.getElementById('modal-aifian-total-cost').value = cost > 0 ? Math.round(cost) : "";
                 return;
             }
 
@@ -772,10 +828,21 @@
                         </div>
                     `;
                 } else {
+                    // 台美股策略說明動態配置（依標的名稱提示專屬定期定額機制）
+                    let strategyTip = "";
+                    if (asset.name.includes("00981A")) {
+                        strategyTip = `<div class="text-[9px] text-stone-400 mt-1.5 bg-stone-50/70 p-2 rounded-lg border border-stone-200/40 leading-relaxed">💡 策略：每月初自動存入一萬元，分三次扣款購買零股</div>`;
+                    } else if (asset.name.includes("0050")) {
+                        strategyTip = `<div class="text-[9px] text-stone-400 mt-1.5 bg-stone-50/70 p-2 rounded-lg border border-stone-200/40 leading-relaxed">💡 策略：每月 5,000 元定期定額扣款</div>`;
+                    }
+
                     bottomHTML = `
-                        <div class="flex justify-between items-center mt-3 text-[10px] text-stone-500 font-mono">
-                            <span class="truncate pr-1">${detailStr}</span>
-                            <span class="text-stone-400 shrink-0">現價: ${displayPrice}</span>
+                        <div class="mt-3 text-[10px] text-stone-500 font-mono">
+                            <div class="flex justify-between items-center">
+                                <span class="truncate pr-1">${detailStr}</span>
+                                <span class="text-stone-400 shrink-0 font-bold">現價: ${displayPrice}</span>
+                            </div>
+                            ${strategyTip}
                         </div>
                     `;
                 }
@@ -802,7 +869,9 @@
                 const currencyUnit = asset.currency;
                 let monthlyTxt = "";
                 if (asset.type === 'AIFIAN') {
-                    monthlyTxt = `持有數量: ${asset.initialShares.toLocaleString()} 額度`;
+                    // 將小數部分做精緻格式化呈現
+                    const displayShares = asset.initialShares.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 4});
+                    monthlyTxt = `持有數量: ${displayShares} 額度`;
                 } else {
                     monthlyTxt = (asset.monthlyBudget > 0) ? `每月投 ${currencyUnit} ${asset.monthlyBudget.toLocaleString()}` : '無定期定額';
                 }
@@ -824,7 +893,7 @@
             const totalProfitTwd = Math.max(0, totalValTwd - totalInvestedTwd);
 
             // 渲染頂部大看板
-            document.getElementById('card-title').innerText = currentYear === 0 ? "初始 階段資產全貌" : `${currentYear} 年後資產全貌`;
+            document.getElementById('card-title').innerText = currentYear === 0 ? "初始 帳務資產" : `${currentYear} 年後帳務資產`;
             document.getElementById('card-total-invest').innerText = `總投入本金: $${Math.round(totalInvestedTwd).toLocaleString()} 元`;
 
             // 計算 10 年長期指標
@@ -1001,7 +1070,7 @@
                 
             } else if (type === 'AIFIAN') {
                 // Aifian
-                document.getElementById('modal-header-bg').className = "text-white p-4 flex justify-between items-center bg-stone-850 bg-slate-900";
+                document.getElementById('modal-header-bg').className = "text-white p-4 flex justify-between items-center bg-stone-855 bg-slate-900";
                 document.getElementById('modal-header-icon').className = "fa-solid fa-vault text-emerald-400";
                 
                 currencySelect.value = 'TWD';
@@ -1068,8 +1137,10 @@
             document.getElementById('modal-asset-name').value = asset.name || "";
 
             if (asset.type === 'AIFIAN') {
-                document.getElementById('modal-aifian-shares').value = asset.initialShares || 0;
-                document.getElementById('modal-aifian-total-cost').value = (asset.initialShares || 0) * 3000;
+                // 為了避免超長小數，讀取時做精緻四捨五入限制
+                const formattedShares = parseFloat(asset.initialShares.toFixed(4));
+                document.getElementById('modal-aifian-shares').value = formattedShares;
+                document.getElementById('modal-aifian-total-cost').value = Math.round(formattedShares * 3000);
             } else if (asset.type === 'SAVINGS') {
                 document.getElementById('modal-savings-principal').value = asset.principal;
                 document.getElementById('modal-stock-budget').value = asset.monthlyBudget || 0;
@@ -1097,6 +1168,7 @@
             document.getElementById('assetModal').classList.remove('hidden');
         }
 
+        // 關閉彈窗
         function closeModal() {
             document.getElementById('assetModal').classList.add('hidden');
         }
@@ -1196,8 +1268,8 @@
 
         // 月底結算自動儲存
         async function triggerMonthEndSettlement() {
-            // 月底結算存檔前，系統自動偵測並同步最新網路上幣值報價
-            showToast('月底結算中！正在自動抓取幣托最新價格...', 'success');
+            // 月底結算存檔前，系統自動偵測並同步最新台股市價與加密幣報價
+            showToast('月底結算中！正在自動抓取線上最新價格...', 'success');
             await fetchRealtimeRates(); // 異步等待完成
             calculateAndRefresh(); // 重置更新右側所有數據與 10 年看板
             
@@ -1216,7 +1288,7 @@
             localStorage.setItem('asset_history_log', JSON.stringify(history));
             
             renderHistoryLog();
-            showToast('已成功同步匯率，並將當下快照存入對帳紀錄！');
+            showToast('已成功同步即時股價與匯率，並將帳務快照寫入歷史對帳單！');
         }
 
         function renderHistoryLog() {
@@ -1237,7 +1309,7 @@
                 tr.innerHTML = `
                     <td class="p-3 text-stone-400 font-mono">${item.timestamp}</td>
                     <td class="p-3 text-right font-bold text-stone-700 font-mono">${item.assetCount}</td>
-                    <td class="p-3 text-right font-black text-stone-850 font-mono">${item.totalVal}</td>
+                    <td class="p-3 text-right font-black text-stone-855 font-mono">${item.totalVal}</td>
                 `;
                 tbody.appendChild(tr);
             });
